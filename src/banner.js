@@ -25,9 +25,10 @@ export class ParallaxBanner {
     this.destroyed = false;
     this.frame = 0;
     this.returning = null;
+    this.touchGesture = null;
     this.width = 0;
     this.height = 0;
-    this._saved = {height: root.style.height, background: root.style.backgroundColor,
+    this._saved = {height: root.style.height, background: root.style.backgroundColor, touchAction: root.style.touchAction,
       hadClass: root.classList.contains('lpb'), state: root.getAttribute('data-banner-state')};
     this.stage = this.doc.createElement('div');
     this.stage.className = 'lpb__stage';
@@ -38,6 +39,7 @@ export class ParallaxBanner {
       this.stage.setAttribute('aria-label', this.config.description);
     }
     this.root.classList.add('lpb');
+    if (this.config.interaction.touch === 'drag') this.root.style.touchAction = 'pan-y pinch-zoom';
     this.root.style.backgroundColor = this.config.background;
     this.root.append(this.stage);
     this._poster();
@@ -49,7 +51,7 @@ export class ParallaxBanner {
     }
     this.reducedQuery = this.win.matchMedia('(prefers-reduced-motion: reduce)');
     this.pointerQuery = this.win.matchMedia('(any-hover: hover) and (any-pointer: fine)');
-    this.motionAllowed = () => this.config.interaction.enabled && !this.reducedQuery.matches && this.pointerQuery.matches;
+    this.motionAllowed = () => this.config.interaction.enabled && !this.reducedQuery.matches && (this.pointerQuery.matches || this.config.interaction.touch === 'drag');
     this._bind();
     this._resize();
     mounted.set(root, this);
@@ -89,8 +91,10 @@ export class ParallaxBanner {
   }
 
   _bind() {
+    this._listen(this.root, 'pointerdown', event => this._startTouch(event), {passive: true});
     this._listen(this.root, 'pointermove', event => {
-      if (event.pointerType === 'touch' || !this.motionAllowed() || this.userPaused || !this.visible || !['ready', 'degraded'].includes(this.state)) return;
+      if (event.pointerType === 'touch') {this._moveTouch(event); return;}
+      if (!this.motionAllowed() || this.userPaused || !this.visible || !['ready', 'degraded'].includes(this.state)) return;
       const rect = this.root.getBoundingClientRect();
       if (!rect.width || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
       if (!this.tracking) {this.entryX = event.clientX; this.tracking = true;}
@@ -98,11 +102,14 @@ export class ParallaxBanner {
       this.progress = clamp((event.clientX - this.entryX) / rect.width, -1, 1);
       this._schedule();
     }, {passive: true});
-    this._listen(this.root, 'pointerleave', () => this._returnHome());
-    this._listen(this.root, 'pointercancel', () => this._returnHome());
+    this._listen(this.root, 'pointerleave', event => {if (event.pointerType !== 'touch') this._returnHome();});
+    this._listen(this.root, 'pointerup', event => this._finishTouch(event));
+    this._listen(this.root, 'pointercancel', event => {this._finishTouch(event); this._returnHome();});
+    this._listen(this.root, 'lostpointercapture', event => this._finishTouch(event));
     this._listen(this.win, 'blur', () => this._returnHome());
     const preferenceChange = () => {
       if (!this.motionAllowed()) this._reset();
+      this._sizeLayers();
       this._syncVideos();
       this._emit('motion', {enabled: this.motionAllowed()});
     };
@@ -118,12 +125,47 @@ export class ParallaxBanner {
     } else this._listen(this.win, 'resize', () => this._resize(), {passive: true});
     if (this.win.IntersectionObserver) {
       this.intersectionObserver = new this.win.IntersectionObserver(entries => {
+        const before = this.visible;
         this.visible = entries[0]?.isIntersecting !== false;
         if (!this.visible) this._reset();
         this._syncVideos();
+        if (before !== this.visible) this._emit('visibility', {visible: this.visible});
       });
       this.intersectionObserver.observe(this.root);
     }
+  }
+
+  _startTouch(event) {
+    if (event.pointerType !== 'touch' || event.isPrimary === false || this.touchGesture || this.config.interaction.touch !== 'drag' || !this.motionAllowed() || this.userPaused || !this.visible || !['ready','degraded'].includes(this.state)) return;
+    this.touchGesture = {id: event.pointerId, x: event.clientX, y: event.clientY, progress: this.progress, axis: null};
+  }
+
+  _moveTouch(event) {
+    const gesture = this.touchGesture;
+    if (!gesture || gesture.id !== event.pointerId || !this.motionAllowed() || this.userPaused) return;
+    const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+    if (!gesture.axis) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx) * 1.2) {gesture.axis = 'vertical'; return;}
+      if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
+      gesture.axis = 'horizontal';
+      try {this.root.setPointerCapture?.(event.pointerId);} catch { /* The browser may already own a cancelled pointer. */ }
+      this._emit('interaction', {phase: 'start', pointerType: 'touch'});
+    }
+    if (gesture.axis !== 'horizontal') return;
+    this.tracking = true;
+    this.returning = null;
+    this.progress = clamp(gesture.progress + dx / Math.max(1, this.width * .55), -1, 1);
+    this._schedule();
+  }
+
+  _finishTouch(event) {
+    const gesture = this.touchGesture;
+    if (!gesture || gesture.id !== event.pointerId) return;
+    this.touchGesture = null;
+    try {if (this.root.hasPointerCapture?.(event.pointerId)) this.root.releasePointerCapture(event.pointerId);} catch { /* Pointer was released by the browser. */ }
+    this._returnHome();
+    if (gesture.axis === 'horizontal') this._emit('interaction', {phase: 'end', pointerType: 'touch'});
   }
 
   _resize() {
@@ -150,7 +192,7 @@ export class ParallaxBanner {
     const reference = this.height / config.baseHeight;
     const shared = config.mode === 'aligned' ? alignedScale(config, this.width, this.height) : reference;
     for (const layer of this.layers) {
-      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint);
+      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint && !(config.interaction.touch === 'drag' && !this.reducedQuery.matches));
       const logicalWidth = layer.naturalWidth / config.pixelRatio;
       const logicalHeight = layer.naturalHeight / config.pixelRatio;
       layer.element.style.width = `${logicalWidth * shared * layer.scale}px`;
@@ -266,6 +308,9 @@ export class ParallaxBanner {
   }
 
   _reset() {
+    const gesture = this.touchGesture;
+    this.touchGesture = null;
+    if (gesture) try {if (this.root.hasPointerCapture?.(gesture.id)) this.root.releasePointerCapture(gesture.id);} catch { /* Already released. */ }
     this.win.cancelAnimationFrame(this.frame);
     this.frame = 0; this.progress = 0; this.tracking = false; this.returning = null;
     this._paint();
@@ -290,6 +335,7 @@ export class ParallaxBanner {
 
   destroy() {
     if (this.destroyed) return;
+    this._reset();
     this.destroyed = true;
     this.state = 'destroyed';
     this.win.cancelAnimationFrame(this.frame);
@@ -301,6 +347,7 @@ export class ParallaxBanner {
     if (!this._saved.hadClass) this.root.classList.remove('lpb');
     this.root.style.height = this._saved.height;
     this.root.style.backgroundColor = this._saved.background;
+    this.root.style.touchAction = this._saved.touchAction;
     if (this._saved.state === null) this.root.removeAttribute('data-banner-state'); else this.root.setAttribute('data-banner-state', this._saved.state);
     mounted.delete(this.root);
   }

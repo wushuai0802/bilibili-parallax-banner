@@ -1,6 +1,7 @@
 import {build} from 'esbuild';
 import {mkdir, readFile, writeFile, copyFile} from 'node:fs/promises';
 import sharp from 'sharp';
+import {buildExamples} from './build-examples.mjs';
 
 await mkdir('dist', {recursive: true});
 await build({entryPoints:['src/banner.js'], bundle:true, format:'esm', outfile:'dist/banner.js', target:'es2020'});
@@ -15,3 +16,4 @@ await writeFile('assets/demo/banner.config.js', `/* Generated from banner.json. 
 const layers = await Promise.all(manifest.layers.map(async layer => ({input: await readFile(`assets/demo/${layer.src}`), left:0, top:0})));
 await sharp({create:{width:3840,height:360,channels:4,background:'#173d42'}}).composite(layers).webp({quality:88}).toFile('assets/demo/poster.webp');
 console.log('Built ESM, browser IIFE, CommonJS, types, CSS and the offline demo config.');
+await buildExamples();

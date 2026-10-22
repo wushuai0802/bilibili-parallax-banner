@@ -4,6 +4,23 @@
 
 An independent, dependency-free layered pointer-parallax banner inspired by Bilibili's header interaction. MIT licensed. Not affiliated with Bilibili; no Bilibili artwork or proprietary source is distributed.
 
+## 效果预览
+
+[![芙莉莲分层视差动态演示](docs/images/frieren-parallax.gif)](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/)
+
+[打开交互预览](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/) · [下载离线 HTML](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/v1.1.0/frieren-banner-preview.html) · [查看示例源码](examples/frieren/)
+
+桌面支持鼠标视差；手机默认轻量自动演示，并可横向拖动，竖向滑动仍正常浏览。系统减少动态效果优先生效。GitHub 介绍页展示的是动图，点击图片可进入真正的交互页面。
+
+示例以《葬送的芙莉莲》第二季官方海报为参考进行 AI 重绘，非官方视觉图；[素材说明与来源](examples/frieren/README.md#素材说明)。
+
+<details>
+<summary>查看手机动态版的界面</summary>
+
+<img src="docs/images/frieren-mobile.png" width="260" alt="手机触屏模拟中的自动演示与触摸视差按钮">
+
+</details>
+
 ## 接入入口
 
 | 需要 | 文档 |
@@ -19,9 +36,9 @@ An independent, dependency-free layered pointer-parallax banner inspired by Bili
 以下使用固定版本 CDN。把容器放到自己的网站中即可；导航、文字和按钮继续由你的网站实现。
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.0.0/dist/banner.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.1.0/dist/banner.css">
 <div id="my-banner"></div>
-<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.0.0/dist/banner.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.1.0/dist/banner.min.js"></script>
 <script>
   const banner = LayeredBanner.createBanner('#my-banner', {
     baseWidth: 1920,
@@ -59,7 +76,7 @@ import {createBanner, loadBanner} from './dist/banner.js';
 也可以安装固定 Git 标签（此项目尚未发布 npm registry 包）：
 
 ```sh
-npm install github:wushuai0802/bilibili-parallax-banner#v1.0.0
+npm install github:wushuai0802/bilibili-parallax-banner#v1.1.0
 ```
 
 随后使用 `import {loadBanner} from 'bilibili-parallax-banner'` 和
@@ -82,7 +99,7 @@ npm run dev
 - B站 split_layer v1 独立适配器：保留天然尺寸，支持初始值、偏移、旋转、模糊、透明度和曲线。
 - `requestAnimationFrame` 合帧、容器 `ResizeObserver`、离屏/后台暂停。
 - 静态海报、超时、必要图层失败兜底、可选图层失败降级。
-- 触屏和系统减少动态效果静止；可指定独立手机海报。
+- 触屏默认静止，可用 `interaction.touch:'drag'` 开启横向拖动与程序驱动演示；系统减少动态效果始终优先。
 - `ready`、状态事件、暂停/恢复、卸载，以及 TypeScript 类型。
 - PNG/WebP/AVIF/JPEG/SVG 的解码、真实透明像素、尺寸和文件引用校验。
 
@@ -93,4 +110,4 @@ npm run dev
 
 ## 许可
 
-组件和仓库内原创示例使用 [MIT](LICENSE)。参考站点的美术、商标与脚本不包含在发行物中。使用者应为自己的横幅素材保留相应授权。
+组件代码和几何示例使用 [MIT](LICENSE)。影视主题展示素材不纳入组件的 MIT 授权，详见相应示例的素材说明。B站的美术与脚本不包含在发行物中。使用者应为自己的横幅素材保留相应授权。

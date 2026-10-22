@@ -1,4 +1,4 @@
-# API 参考 / v1
+# API 参考 / v1.1
 
 所有单位除图片导出尺寸外均为 CSS 像素。先加载 `dist/banner.css`。
 
@@ -25,7 +25,7 @@ banner.destroy();
 | error | 必要图层失败，显示海报/背景 |
 | destroyed | 已卸载；重复 destroy 安全 |
 
-`pause()` 归位并暂停视频；`resume()` 恢复允许的交互。`setProgress(-1..1)` 用于设计预览，遵守系统减少动态、暂停和指针能力设置，不启动自动循环。
+`pause()` 归位并暂停视频；`resume()` 恢复允许的交互。`setProgress(-1..1)` 用于设计预览，遵守系统减少动态和暂停设置；默认只允许精细指针，设置 `interaction.touch:'drag'` 后也可在触屏上使用。不启动自动循环。
 
 ## 配置
 
@@ -48,10 +48,17 @@ banner.destroy();
 
 ```js
 height: {min:155, max:240, ratio:0.09375, mobile:144, breakpoint:640},
-interaction: {enabled:true, strength:1, resetDuration:200}
+interaction: {enabled:true, strength:1, resetDuration:200, touch:'none'}
 ```
 
 高度按**容器宽度**计算，桌面 `clamp(width*ratio,min,max)`；小于等于 breakpoint 使用 mobile 高度。组件不设置页面最小宽度，也不拦截触摸滚动。
+
+### 手机动态（可选）
+
+`interaction.touch:'none'` 是默认策略，触屏保持静态。设为 `'drag'` 后启用单指横向拖动，也允许宿主用 `setProgress` 驱动轻量自动演示。
+拖动采用8px方向判定阈值，横向意图明确时才接管；组件只设置自身容器 `touch-action:pan-y pinch-zoom`，不调用 `preventDefault()` 阻止上下滚动或缩放。
+同时只有一个活动触点；抬手或取消时归位。`destroy()` 恢复宿主原有的 touch-action。
+配置手机海报时，默认仍用于静态降级；触摸动态启用时显示图层，减少动态效果生效时恢复静态。需要人物完整可见时应像示例一样准备独立手机图层。
 
 ## 图层
 
@@ -79,6 +86,8 @@ root.addEventListener('banner:ready', event => {
 root.addEventListener('banner:state', event => { /* {state, failedLayerIds?} */ });
 root.addEventListener('banner:error', event => { /* {layerId, message} */ });
 root.addEventListener('banner:motion', event => { /* {enabled} */ });
+root.addEventListener('banner:visibility', event => { /* {visible} */ });
+root.addEventListener('banner:interaction', event => { /* {phase:'start'|'end', pointerType:'touch'} */ });
 ```
 
 事件绑定在容器上；加载错误信息不包含完整图片 URL。首次 loading 事件发生在创建过程中，监听它需先绑定再创建。

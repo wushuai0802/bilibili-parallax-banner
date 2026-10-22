@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "mode": "aligned",
+  "baseWidth": 375,
+  "baseHeight": 160,
+  "pixelRatio": 3,
+  "description": "芙莉莲、菲伦与休塔尔克置身蓝色水晶洞窟的横向视觉预览",
+  "poster": "mobile.webp",
+  "background": "#08283b",
+  "height": {
+    "min": 180,
+    "max": 240,
+    "ratio": 0.48,
+    "mobile": 180,
+    "breakpoint": 640
+  },
+  "interaction": {
+    "enabled": true,
+    "touch": "drag",
+    "strength": 0.65,
+    "resetDuration": 200
+  },
+  "layers": [
+    {
+      "id": "mobile-cavern",
+      "src": "mobile-background.webp",
+      "offset": [
+        2,
+        0
+      ],
+      "required": true
+    },
+    {
+      "id": "mobile-party",
+      "src": "mobile-characters.webp",
+      "offset": [
+        12,
+        0
+      ],
+      "requireAlpha": true
+    },
+    {
+      "id": "mobile-crystals",
+      "src": "mobile-crystals.webp",
+      "offset": [
+        30,
+        3
+      ],
+      "requireAlpha": true
+    }
+  ]
+}

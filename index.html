@@ -11,7 +11,7 @@
 <body>
   <header class="page-bar"><a class="wordmark" href="./index.html">LAYERED <span>BANNER</span></a><nav><a href="https://github.com/wushuai0802/bilibili-parallax-banner#readme">对接文档</a><a href="https://github.com/wushuai0802/bilibili-parallax-banner">GitHub ↗</a></nav></header>
   <main>
-    <div class="intro"><p class="eyebrow">POINTER PARALLAX / V1.0</p><h1>让画面，多一点纵深。</h1><p>在下面的横幅内左右移动鼠标，远景、中景与前景会以不同幅度移动。</p></div>
+    <div class="intro"><p class="eyebrow">POINTER PARALLAX / V1.1</p><h1>让画面，多一点纵深。</h1><p>在下面的横幅内左右移动鼠标，或在手机上横向拖动，远景、中景与前景会以不同幅度移动。</p></div>
     <section class="preview" aria-label="Banner 交互预览">
       <div id="banner" class="demo-banner">
         <div class="banner-copy"><span>FIELD NOTES</span><strong>Somewhere<br>between layers.</strong></div>
@@ -25,7 +25,7 @@
     <section class="notes" aria-label="组件接入方式">
       <article><b>01 / 一份配置</b><h2>网站负责内容，组件负责横幅。</h2><p>不接管导航、搜索、路由和登录。仅向你指定的容器添加画面与动效，卸载时移除自己的节点。</p></article>
       <article><b>02 / 固定素材约定</b><h2>保留文件名，替换图片即可。</h2><p>默认三张图使用相同画布，前景保留透明。布局、位移余量和尺寸适配由组件处理。</p></article>
-      <article><b>03 / 两种引入方式</b><h2>ESM 或 script 标签。</h2><p>支持 React、Vue 与普通网页。首屏海报兜底；触屏、减少动态效果与页面不可见时自动静止。</p></article>
+      <article><b>03 / 两种引入方式</b><h2>ESM 或 script 标签。</h2><p>支持 React、Vue 与普通网页。首屏海报兜底；触屏可横向拖动，减少动态效果与页面不可见时自动静止。</p></article>
     </section>
     <footer>独立实现 · MIT · 无 B站插画素材、账号或接口依赖</footer>
   </main>

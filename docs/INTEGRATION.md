@@ -94,11 +94,11 @@ onBeforeUnmount(() => {disposed = true; abort.abort(); instance?.destroy();});
 2. 鼠标最左/最右，背景无灰边；横幅位于页面中部时仍可交互。
 3. React Strict Mode / Vue 路由切换后没有重复图层或遗留事件。
 4. 断网、必要图层 404、可选图层 404 分别表现为静态海报或降级，状态可观测。
-5. 系统减少动态效果生效，手机可正常滚动，视频不在后台持续播放。
+5. 系统减少动态效果生效，手机可正常滚动，视频不在后台持续播放。启用 `interaction.touch:'drag'` 时还需核对横向拖动、抬手归位与多触点取消。
 6. `npm run validate -- /path/to/banner.json` 通过后再上传；本地校验不代表生产 CDN 已正确部署。
 
 ## 8. 版本、CDN 与供应链
 
-使用 `@v1.0.0` 这类固定标签，避免直接跟随 `main`。若站点不允许第三方 CDN，可自托管 `dist/banner.min.js` 和 `dist/banner.css`；组件无需联网服务。
+使用 `@v1.1.0` 这类固定标签，避免直接跟随 `main`。若站点不允许第三方 CDN，可自托管 `dist/banner.min.js` 和 `dist/banner.css`；组件无需联网服务。
 网站开发者不需要 Node.js、图像处理工具或构建过程，直接使用已构建文件即可。开发维护仓库时才需要 Node.js。
 如启用严格 CSP，把 JS/CSS 及图片域名加入现有策略；本库不使用 `eval`、注入 HTML 字符串或第三方跟踪。

@@ -17,7 +17,8 @@ window.BANNER_CONFIG = {
   "interaction": {
     "enabled": true,
     "strength": 1,
-    "resetDuration": 200
+    "resetDuration": 200,
+    "touch": "drag"
   },
   "layers": [
     {

@@ -1,4 +1,4 @@
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 function finite(value, fallback, name, low = -10000, high = 10000) {
@@ -43,6 +43,8 @@ export function normalizeConfig(input) {
   const height = input.height ?? {};
   const min = finite(height.min, 155, 'height.min', 1, 2000);
   const max = finite(height.max, 240, 'height.max', min, 2000);
+  const touch = input.interaction?.touch ?? 'none';
+  if (!['none', 'drag'].includes(touch)) throw new TypeError('interaction.touch must be none or drag');
   const config = {
     version: 1, mode,
     baseWidth: finite(input.baseWidth, 1920, 'baseWidth', 1, 20000),
@@ -59,6 +61,7 @@ export function normalizeConfig(input) {
     height: {min, max, ratio: finite(height.ratio, 0.09375, 'height.ratio', 0.01, 2),
       mobile: finite(height.mobile, 144, 'height.mobile', 1, 2000), breakpoint: finite(height.breakpoint, 640, 'height.breakpoint', 0, 3000)},
     interaction: {enabled: input.interaction?.enabled !== false,
+      touch,
       strength: finite(input.interaction?.strength, 1, 'interaction.strength', 0, 3),
       resetDuration: finite(input.interaction?.resetDuration, 200, 'interaction.resetDuration', 0, 2000)},
   };

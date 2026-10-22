@@ -7,8 +7,8 @@
   function showState(){
     if(!instance)return;
     if(instance.state==='error'){status.textContent='图层未能加载，正在显示静态海报';return;}
-    if(!fine.matches||reduce.matches){status.textContent='当前使用静态模式（触屏或系统减少动态效果）';return;}
-    status.textContent=paused?'动效已暂停':'已就绪 · 左右移动鼠标查看视差，离开后 200ms 归位';
+    if(reduce.matches){status.textContent='当前使用静态模式（系统减少动态效果）';return;}
+    status.textContent=paused?'动效已暂停':fine.matches?'已就绪 · 左右移动鼠标查看视差，离开后 200ms 归位':'已就绪 · 在横幅上横向拖动；上下滑动仍正常滚动页面';
   }
   root.addEventListener('banner:ready',showState);
   root.addEventListener('banner:motion',showState);

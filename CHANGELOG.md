@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 - 2026-10-22
+
+- Add opt-in `interaction.touch: 'drag'` with direction arbitration, pointer ownership and native vertical scrolling.
+- Allow programmatic progress on touch devices when touch motion is explicitly enabled; reduced motion still takes priority.
+- Add visibility and touch-interaction events for host-controlled animation.
+- Add a Frieren showcase with dedicated mobile layers, lightweight automatic preview and a standalone offline HTML.
+- Add a README animation, online showcase deployment and touch regression coverage.
+
 ## 1.0.0 - 2026-10-22
 
 - A standalone banner component, independent of website navigation and business logic.

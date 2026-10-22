@@ -7,7 +7,7 @@
   "description": "Layered green hills, distant sunlight and foreground reeds",
   "poster": "poster.webp",
   "height": { "min": 155, "max": 240, "ratio": 0.09375, "mobile": 144, "breakpoint": 640 },
-  "interaction": { "enabled": true, "strength": 1, "resetDuration": 200 },
+  "interaction": { "enabled": true, "strength": 1, "resetDuration": 200, "touch": "drag" },
   "layers": [
     { "id": "sky", "src": "01_bg.svg", "offset": [6, 0], "required": true, "requireAlpha": false },
     { "id": "hills", "src": "02_mid.svg", "offset": [28, 6], "required": false, "requireAlpha": true },
