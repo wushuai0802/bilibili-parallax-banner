@@ -1,12 +1,23 @@
-.frieren-still .lpb__layer{display:none!important}
 .hero[data-input-kind="touch"]{cursor:grab}
 .hero[data-input-kind="touch"].lpb--moving{cursor:grabbing}
-@media(max-width:640px){
-  .hero .title{bottom:12px!important;left:18px!important}
-  .title small{font-size:8px;letter-spacing:.2em}
-  .title h1{font-size:25px;line-height:1.3;margin:5px 0}
+@media(max-width:767px){
+  header{height:56px;padding:0 18px;gap:14px}
+  .brand small{display:none}
+  .tag{font-size:9px;text-align:right}
+  .hero .title{top:10px;bottom:auto!important;left:18px!important}
+  .title small{display:block;font-size:8px;letter-spacing:.2em}
+  .title h1{font-size:clamp(21px,6.4vw,25px);line-height:1.3;margin:5px 0}
   .title p{font-size:9px;letter-spacing:.08em}
+  .hero:after{background:linear-gradient(180deg,rgba(1,14,29,.5),transparent 58%)}
+  .hero .lpb__taper{height:60px}
+  .tools{padding:16px 18px;gap:12px}
+  .mode-group:before{display:none}
   .mode-group{width:100%;justify-content:space-between}
   .mode-group button{flex:1;padding:8px 10px;white-space:nowrap}
   .status{display:block;min-height:32px}
+  .info{grid-template-columns:1fr;gap:26px;padding:28px 18px}
+  .info li{gap:16px}
+  .info li span{text-align:right}
+  .ref{padding:0 18px 22px}
+  footer{margin:0 18px}
 }

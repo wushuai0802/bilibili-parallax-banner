@@ -1,4 +1,4 @@
-import {VERSION, alignedScale, clamp, fromBilibiliSplitLayer, layerState, normalizeConfig, resolveAssetUrl} from './model.js';
+import {VERSION, alignedScale, clamp, fromBilibiliSplitLayer, layerState, layoutScale, normalizeConfig, resolveAssetUrl} from './model.js';
 export {VERSION, fromBilibiliSplitLayer};
 
 const mounted = new WeakMap();
@@ -26,6 +26,7 @@ export class ParallaxBanner {
     this.frame = 0;
     this.returning = null;
     this.touchGesture = null;
+    this.touchPointers = new Set();
     this.width = 0;
     this.height = 0;
     this._saved = {height: root.style.height, background: root.style.backgroundColor, touchAction: root.style.touchAction,
@@ -104,9 +105,21 @@ export class ParallaxBanner {
     }, {passive: true});
     this._listen(this.root, 'pointerleave', event => {if (event.pointerType !== 'touch') this._returnHome();});
     this._listen(this.root, 'pointerup', event => this._finishTouch(event));
-    this._listen(this.root, 'pointercancel', event => {this._finishTouch(event); this._returnHome();});
-    this._listen(this.root, 'lostpointercapture', event => this._finishTouch(event));
-    this._listen(this.win, 'blur', () => this._returnHome());
+    this._listen(this.root, 'pointercancel', event => {this._finishTouch(event, true); this._returnHome();});
+    this._listen(this.root, 'lostpointercapture', event => this._finishTouch(event, true));
+    this._listen(this.win, 'pointerdown', event => {
+      if (event.pointerType !== 'touch' || !this.touchPointers.size) return;
+      this.touchPointers.add(event.pointerId);
+      if (this.touchPointers.size > 1 && this.touchGesture) this._finishTouch({pointerId: this.touchGesture.id}, true);
+    }, {passive: true});
+    const releaseTouch = event => {
+      if (event.pointerType !== 'touch') return;
+      this._finishTouch(event);
+      this.touchPointers.delete(event.pointerId);
+    };
+    this._listen(this.win, 'pointerup', releaseTouch, {passive: true});
+    this._listen(this.win, 'pointercancel', releaseTouch, {passive: true});
+    this._listen(this.win, 'blur', () => this._reset());
     const preferenceChange = () => {
       if (!this.motionAllowed()) this._reset();
       this._sizeLayers();
@@ -136,7 +149,8 @@ export class ParallaxBanner {
   }
 
   _startTouch(event) {
-    if (event.pointerType !== 'touch' || event.isPrimary === false || this.touchGesture || this.config.interaction.touch !== 'drag' || !this.motionAllowed() || this.userPaused || !this.visible || !['ready','degraded'].includes(this.state)) return;
+    if (event.pointerType !== 'touch' || event.isPrimary === false || this.touchPointers.size || this.config.interaction.touch !== 'drag' || !this.motionAllowed() || this.userPaused || !this.visible || !['ready','degraded'].includes(this.state)) return;
+    this.touchPointers.add(event.pointerId);
     this.touchGesture = {id: event.pointerId, x: event.clientX, y: event.clientY, progress: this.progress, axis: null};
   }
 
@@ -155,22 +169,22 @@ export class ParallaxBanner {
     if (gesture.axis !== 'horizontal') return;
     this.tracking = true;
     this.returning = null;
-    this.progress = clamp(gesture.progress + dx / Math.max(1, this.width * .55), -1, 1);
+    this.progress = clamp(gesture.progress + dx / Math.max(1, this.root.getBoundingClientRect().width * .55), -1, 1);
     this._schedule();
   }
 
-  _finishTouch(event) {
+  _finishTouch(event, cancelled = false) {
     const gesture = this.touchGesture;
     if (!gesture || gesture.id !== event.pointerId) return;
     this.touchGesture = null;
     try {if (this.root.hasPointerCapture?.(event.pointerId)) this.root.releasePointerCapture(event.pointerId);} catch { /* Pointer was released by the browser. */ }
     this._returnHome();
-    if (gesture.axis === 'horizontal') this._emit('interaction', {phase: 'end', pointerType: 'touch'});
+    if (gesture.axis === 'horizontal') this._emit('interaction', {phase: 'end', pointerType: 'touch', cancelled});
   }
 
   _resize() {
     if (this.destroyed) return;
-    const width = this.root.getBoundingClientRect().width || this.root.clientWidth;
+    const width = this.root.clientWidth || this.root.getBoundingClientRect().width;
     if (!width) return;
     const rule = this.config.height;
     const height = width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
@@ -192,11 +206,19 @@ export class ParallaxBanner {
     const reference = this.height / config.baseHeight;
     const shared = config.mode === 'aligned' ? alignedScale(config, this.width, this.height) : reference;
     for (const layer of this.layers) {
-      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint && !(config.interaction.touch === 'drag' && !this.reducedQuery.matches));
+      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint && config.interaction.touch !== 'drag');
+      layer.layoutScale = layoutScale(config, layer, this.width, this.height, shared);
       const logicalWidth = layer.naturalWidth / config.pixelRatio;
       const logicalHeight = layer.naturalHeight / config.pixelRatio;
-      layer.element.style.width = `${logicalWidth * shared * layer.scale}px`;
-      layer.element.style.height = `${logicalHeight * shared * layer.scale}px`;
+      const width = logicalWidth * layer.layoutScale * layer.scale;
+      const height = logicalHeight * layer.layoutScale * layer.scale;
+      layer.element.style.width = `${width}px`;
+      layer.element.style.height = `${height}px`;
+      if (layer.fit === 'contain') {
+        layer.element.style.position = 'absolute';
+        layer.element.style.left = `${(this.width - width) * layer.position[0]}px`;
+        layer.element.style.top = `${(this.height - height) * layer.position[1]}px`;
+      }
     }
   }
 
@@ -292,7 +314,7 @@ export class ParallaxBanner {
     const reference = this.height / this.config.baseHeight;
     const progress = this.progress * this.config.interaction.strength;
     for (const layer of this.layers) {
-      const value = layerState(layer, progress, reference);
+      const value = layerState(layer, progress, layer.fit === 'contain' ? layer.layoutScale : reference);
       layer.element.style.transform = `translate3d(${value.x.toFixed(3)}px,${value.y.toFixed(3)}px,0) rotate(${value.rotate}deg) scale(${value.scale})`;
       layer.element.style.opacity = String(value.opacity);
       layer.element.style.filter = value.blur > 0.0001 ? `blur(${value.blur}px)` : '';
@@ -310,6 +332,7 @@ export class ParallaxBanner {
   _reset() {
     const gesture = this.touchGesture;
     this.touchGesture = null;
+    this.touchPointers.clear();
     if (gesture) try {if (this.root.hasPointerCapture?.(gesture.id)) this.root.releasePointerCapture(gesture.id);} catch { /* Already released. */ }
     this.win.cancelAnimationFrame(this.frame);
     this.frame = 0; this.progress = 0; this.tracking = false; this.returning = null;

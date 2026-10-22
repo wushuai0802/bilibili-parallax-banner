@@ -1,4 +1,4 @@
-# API 参考 / v1.1
+# API 参考 / v1.2
 
 所有单位除图片导出尺寸外均为 CSS 像素。先加载 `dist/banner.css`。
 
@@ -57,8 +57,8 @@ interaction: {enabled:true, strength:1, resetDuration:200, touch:'none'}
 
 `interaction.touch:'none'` 是默认策略，触屏保持静态。设为 `'drag'` 后启用单指横向拖动，也允许宿主用 `setProgress` 驱动轻量自动演示。
 拖动采用8px方向判定阈值，横向意图明确时才接管；组件只设置自身容器 `touch-action:pan-y pinch-zoom`，不调用 `preventDefault()` 阻止上下滚动或缩放。
-同时只有一个活动触点；抬手或取消时归位。`destroy()` 恢复宿主原有的 touch-action。
-配置手机海报时，默认仍用于静态降级；触摸动态启用时显示图层，减少动态效果生效时恢复静态。需要人物完整可见时应像示例一样准备独立手机图层。
+第二个触点出现时取消视差，包括第二个触点落在横幅之外的情况，将手势交给浏览器缩放；抬手或取消时归位。`destroy()` 恢复宿主原有的 touch-action。
+配置手机海报时，默认仍用于静态降级；触摸动态启用时显示图层，减少动态效果生效时将同一套图层归位静止，避免重新切换海报导致人物大小变化。加载失败仍退到海报。
 
 ## 图层
 
@@ -69,6 +69,8 @@ interaction: {enabled:true, strength:1, resetDuration:200, touch:'none'}
 | type | 按扩展名推断 | image / video |
 | required | 首层 true，其余 false | 失败时是否整组退到海报 |
 | scale | 1 | 初始缩放；同画布素材通常都为1 |
+| fit | canvas | aligned 模式中，canvas 使用共同铺满缩放；contain 独立等比容纳完整逻辑画布 |
+| position | [0.5,0.5] | contain 图层在剩余空间中的位置，0–1；[0.5,1] 为水平居中、底部对齐 |
 | offset | [0,0] | 横向输入联动的 X/Y 位移，逻辑像素 |
 | initial | [0,0] | 静止位置偏移 |
 | opacity / rotate / blur | 1 / 0 / 0 | 不透明度、角度、模糊 |
@@ -76,6 +78,9 @@ interaction: {enabled:true, strength:1, resetDuration:200, touch:'none'}
 
 手感公式：`progress=(pointerX-entryX)/containerWidth`，进入时不跳动；`dx/dy=(initial+offset*progress)*height/baseHeight*scale`。
 同画布模式另计算共同出血缩放，防止水平与垂直运动露底；不分别扩大每张图而破坏对齐。
+
+背景与需要拼接对齐的图层保留 `fit:'canvas'`。独立人物、标志或物体可以用 `fit:'contain',position:[0.5,1]`；该层不参与背景出血缩放，位移按自己的显示比例计算。它不是自动识别人脸，仍需为头部、文字和最大位移预留安全区。contain 的完整画布默认居中，裁到下边缘的半身像应显式底部对齐，避免悬空。
+手机图层的高度需要随宽度变化时，可设置 `height:{min:120,max:280,ratio:200/375,breakpoint:0}`；`breakpoint:0` 表示所有正宽度都使用比例高度，不再套用固定 mobile 高度。
 
 ## 事件
 
@@ -87,7 +92,7 @@ root.addEventListener('banner:state', event => { /* {state, failedLayerIds?} */ 
 root.addEventListener('banner:error', event => { /* {layerId, message} */ });
 root.addEventListener('banner:motion', event => { /* {enabled} */ });
 root.addEventListener('banner:visibility', event => { /* {visible} */ });
-root.addEventListener('banner:interaction', event => { /* {phase:'start'|'end', pointerType:'touch'} */ });
+root.addEventListener('banner:interaction', event => { /* {phase:'start'|'end', pointerType:'touch', cancelled?:boolean} */ });
 ```
 
 事件绑定在容器上；加载错误信息不包含完整图片 URL。首次 loading 事件发生在创建过程中，监听它需先绑定再创建。

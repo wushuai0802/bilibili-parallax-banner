@@ -1,4 +1,4 @@
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 function finite(value, fallback, name, low = -10000, high = 10000) {
@@ -73,8 +73,12 @@ export function normalizeConfig(input) {
     if (typeof layer.src !== 'string' || !layer.src.trim()) throw new TypeError(`Missing src for ${id}`);
     const type = layer.type ?? (/\.(mp4|webm)(?:[?#]|$)/i.test(layer.src) ? 'video' : 'image');
     if (!['video', 'image'].includes(type)) throw new TypeError(`Unsupported media type for ${id}`);
+    const fit = layer.fit ?? 'canvas';
+    if (!['canvas', 'contain'].includes(fit) || (fit === 'contain' && mode !== 'aligned')) throw new TypeError(`Unsupported fit for ${id}`);
+    const position = pair(layer.position, [.5, .5], `${id}.position`);
+    if (position.some(value => value < 0 || value > 1)) throw new TypeError(`${id}.position must be in [0, 1]`);
     return {
-      ...layer, id, type, required: layer.required ?? index === 0,
+      ...layer, id, type, fit, position, required: layer.required ?? index === 0,
       scale: finite(layer.scale, 1, `${id}.scale`, 0.01, 10),
       offset: pair(layer.offset, [0, 0], `${id}.offset`),
       initial: pair(layer.initial, [0, 0], `${id}.initial`),
@@ -140,12 +144,18 @@ export function alignedScale(config, width, height) {
   let paddingX = 1, paddingY = 1;
   let minimumScale = 1;
   for (const layer of config.layers) {
+    if (layer.fit === 'contain') continue;
     const strength = config.interaction.strength;
     paddingX = Math.max(paddingX, (Math.abs(layer.initial[0]) + Math.abs(layer.offset[0]) * strength) * reference * layer.scale + 1);
     paddingY = Math.max(paddingY, (Math.abs(layer.initial[1]) + Math.abs(layer.offset[1]) * strength) * reference * layer.scale + 1);
     minimumScale = Math.min(minimumScale, layer.scale);
   }
   return Math.max((width + 2 * paddingX) / config.baseWidth, (height + 2 * paddingY) / config.baseHeight) / minimumScale;
+}
+
+export function layoutScale(config, layer, width, height, shared) {
+  if (layer.fit === 'contain') return Math.min(width / config.baseWidth, height / config.baseHeight);
+  return shared ?? (config.mode === 'aligned' ? alignedScale(config, width, height) : height / config.baseHeight);
 }
 
 export function fromBilibiliSplitLayer(input, options = {}) {

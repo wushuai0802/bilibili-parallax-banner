@@ -8,16 +8,20 @@ An independent, dependency-free layered pointer-parallax banner inspired by Bili
 
 [![芙莉莲分层视差动态演示](docs/images/frieren-parallax.gif)](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/)
 
-[打开交互预览](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/) · [下载离线 HTML](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/v1.1.0/frieren-banner-preview.html) · [查看示例源码](examples/frieren/)
+[打开交互预览](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/) · [下载离线 HTML](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/v1.2.0/frieren-banner-preview.html) · [查看示例源码](examples/frieren/)
 
 桌面支持鼠标视差；手机默认轻量自动演示，并可横向拖动，竖向滑动仍正常浏览。系统减少动态效果优先生效。GitHub 介绍页展示的是动图，点击图片可进入真正的交互页面。
+
+v1.2 调整了手机的三人构图与标题安全区，人物层独立等比显示；桌面窄窗口和超宽屏也保留完整头部。背景继续铺满，静态模式使用同一套归位图层。
 
 示例以《葬送的芙莉莲》第二季官方海报为参考进行 AI 重绘，非官方视觉图；[素材说明与来源](examples/frieren/README.md#素材说明)。
 
 <details>
-<summary>查看手机动态版的界面</summary>
+<summary>查看手机构图示意</summary>
 
-<img src="docs/images/frieren-mobile.png" width="260" alt="手机触屏模拟中的自动演示与触摸视差按钮">
+<img src="docs/images/frieren-mobile.png" width="390" alt="手机构图：标题位于上方留白，三个人物头部完整可见">
+
+此图按组件的布局模型生成，用于核对人物与标题安全区；动态效果请打开上方交互预览。
 
 </details>
 
@@ -30,15 +34,16 @@ An independent, dependency-free layered pointer-parallax banner inspired by Bili
 | 参数、事件、生命周期 | [API 参考](docs/API.md) |
 | 原站对照与支持范围 | [参考证据与兼容边界](docs/REFERENCE.md) |
 | 开发维护 | [贡献指南](CONTRIBUTING.md) |
+| 构图和交互验收 | [验证范围与复验方法](docs/TESTING.md) |
 
 ## 直接通过 script 引入
 
 以下使用固定版本 CDN。把容器放到自己的网站中即可；导航、文字和按钮继续由你的网站实现。
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.1.0/dist/banner.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.2.0/dist/banner.css">
 <div id="my-banner"></div>
-<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.1.0/dist/banner.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.2.0/dist/banner.min.js"></script>
 <script>
   const banner = LayeredBanner.createBanner('#my-banner', {
     baseWidth: 1920,
@@ -76,7 +81,7 @@ import {createBanner, loadBanner} from './dist/banner.js';
 也可以安装固定 Git 标签（此项目尚未发布 npm registry 包）：
 
 ```sh
-npm install github:wushuai0802/bilibili-parallax-banner#v1.1.0
+npm install github:wushuai0802/bilibili-parallax-banner#v1.2.0
 ```
 
 随后使用 `import {loadBanner} from 'bilibili-parallax-banner'` 和
@@ -96,6 +101,7 @@ npm run dev
 
 - 进入点为基准的横向视差；Y 方向可随横向输入联动；200ms 线性归位。
 - 同画布模式自动计算共同出血缩放，透明图层保持对齐，覆盖手机至超宽屏。
+- 人物层可选 `fit:'contain', position:[0.5,1]`，独立等比显示并底部对齐，避免随背景铺满而裁掉主体。
 - B站 split_layer v1 独立适配器：保留天然尺寸，支持初始值、偏移、旋转、模糊、透明度和曲线。
 - `requestAnimationFrame` 合帧、容器 `ResizeObserver`、离屏/后台暂停。
 - 静态海报、超时、必要图层失败兜底、可选图层失败降级。

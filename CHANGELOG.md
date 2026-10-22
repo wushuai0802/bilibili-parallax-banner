@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 - 2026-10-23
+
+- Add opt-in contained subject layers and normalized placement, independent of background overscan.
+- Recompose the mobile showcase to preserve all three heads, move its title to the upper safe area and scale height proportionally.
+- Keep loaded layers at rest in static and reduced-motion modes instead of switching to a differently scaled poster.
+- Fix container measurement under ancestor transforms and cancel parallax when a second touch starts, including outside the banner.
+- Preserve preview modes across input changes and responsive remounts; restore browser back/forward cache pages without destroying their layers.
+- Resolve directory index URLs in the local development server.
+- Add subject-safe-region regression checks across 21 viewport widths and both displacement extremes; update the asset and integration contracts.
+
 ## 1.1.0 - 2026-10-22
 
 - Add opt-in `interaction.touch: 'drag'` with direction arbitration, pointer ownership and native vertical scrolling.

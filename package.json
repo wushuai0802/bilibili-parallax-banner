@@ -1,6 +1,6 @@
 {
   "name": "bilibili-parallax-banner",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Dependency-free layered pointer-parallax banner with Bilibili-style motion, responsive layout and an asset contract.",
   "type": "module",
   "license": "MIT",
@@ -20,6 +20,7 @@
     "validate": "node scripts/validate-assets.mjs",
     "validate:showcase": "node scripts/validate-assets.mjs examples/frieren/assets/banner.json && node scripts/validate-assets.mjs examples/frieren/assets/mobile.json",
     "showcase:gif": "node scripts/render-showcase.mjs",
+    "showcase:composition": "node scripts/render-composition.mjs",
     "dev": "node scripts/serve.mjs",
     "check": "npm run build && npm test && npm run validate && npm run validate:showcase"
   },

@@ -1,5 +1,5 @@
 // src/model.js
-var VERSION = "1.1.0";
+var VERSION = "1.2.0";
 var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 function finite(value, fallback, name, low = -1e4, high = 1e4) {
   if (value === void 0) return fallback;
@@ -78,10 +78,16 @@ function normalizeConfig(input) {
     if (typeof layer.src !== "string" || !layer.src.trim()) throw new TypeError(`Missing src for ${id}`);
     const type = layer.type ?? (/\.(mp4|webm)(?:[?#]|$)/i.test(layer.src) ? "video" : "image");
     if (!["video", "image"].includes(type)) throw new TypeError(`Unsupported media type for ${id}`);
+    const fit = layer.fit ?? "canvas";
+    if (!["canvas", "contain"].includes(fit) || fit === "contain" && mode !== "aligned") throw new TypeError(`Unsupported fit for ${id}`);
+    const position = pair(layer.position, [0.5, 0.5], `${id}.position`);
+    if (position.some((value) => value < 0 || value > 1)) throw new TypeError(`${id}.position must be in [0, 1]`);
     return {
       ...layer,
       id,
       type,
+      fit,
+      position,
       required: layer.required ?? index === 0,
       scale: finite(layer.scale, 1, `${id}.scale`, 0.01, 10),
       offset: pair(layer.offset, [0, 0], `${id}.offset`),
@@ -148,12 +154,17 @@ function alignedScale(config, width, height) {
   let paddingX = 1, paddingY = 1;
   let minimumScale = 1;
   for (const layer of config.layers) {
+    if (layer.fit === "contain") continue;
     const strength = config.interaction.strength;
     paddingX = Math.max(paddingX, (Math.abs(layer.initial[0]) + Math.abs(layer.offset[0]) * strength) * reference * layer.scale + 1);
     paddingY = Math.max(paddingY, (Math.abs(layer.initial[1]) + Math.abs(layer.offset[1]) * strength) * reference * layer.scale + 1);
     minimumScale = Math.min(minimumScale, layer.scale);
   }
   return Math.max((width + 2 * paddingX) / config.baseWidth, (height + 2 * paddingY) / config.baseHeight) / minimumScale;
+}
+function layoutScale(config, layer, width, height, shared) {
+  if (layer.fit === "contain") return Math.min(width / config.baseWidth, height / config.baseHeight);
+  return shared ?? (config.mode === "aligned" ? alignedScale(config, width, height) : height / config.baseHeight);
 }
 function fromBilibiliSplitLayer(input, options = {}) {
   const envelope = typeof input === "string" ? JSON.parse(input) : input;
@@ -218,6 +229,7 @@ var ParallaxBanner = class {
     this.frame = 0;
     this.returning = null;
     this.touchGesture = null;
+    this.touchPointers = /* @__PURE__ */ new Set();
     this.width = 0;
     this.height = 0;
     this._saved = {
@@ -305,11 +317,23 @@ var ParallaxBanner = class {
     });
     this._listen(this.root, "pointerup", (event) => this._finishTouch(event));
     this._listen(this.root, "pointercancel", (event) => {
-      this._finishTouch(event);
+      this._finishTouch(event, true);
       this._returnHome();
     });
-    this._listen(this.root, "lostpointercapture", (event) => this._finishTouch(event));
-    this._listen(this.win, "blur", () => this._returnHome());
+    this._listen(this.root, "lostpointercapture", (event) => this._finishTouch(event, true));
+    this._listen(this.win, "pointerdown", (event) => {
+      if (event.pointerType !== "touch" || !this.touchPointers.size) return;
+      this.touchPointers.add(event.pointerId);
+      if (this.touchPointers.size > 1 && this.touchGesture) this._finishTouch({ pointerId: this.touchGesture.id }, true);
+    }, { passive: true });
+    const releaseTouch = (event) => {
+      if (event.pointerType !== "touch") return;
+      this._finishTouch(event);
+      this.touchPointers.delete(event.pointerId);
+    };
+    this._listen(this.win, "pointerup", releaseTouch, { passive: true });
+    this._listen(this.win, "pointercancel", releaseTouch, { passive: true });
+    this._listen(this.win, "blur", () => this._reset());
     const preferenceChange = () => {
       if (!this.motionAllowed()) this._reset();
       this._sizeLayers();
@@ -338,7 +362,8 @@ var ParallaxBanner = class {
     }
   }
   _startTouch(event) {
-    if (event.pointerType !== "touch" || event.isPrimary === false || this.touchGesture || this.config.interaction.touch !== "drag" || !this.motionAllowed() || this.userPaused || !this.visible || !["ready", "degraded"].includes(this.state)) return;
+    if (event.pointerType !== "touch" || event.isPrimary === false || this.touchPointers.size || this.config.interaction.touch !== "drag" || !this.motionAllowed() || this.userPaused || !this.visible || !["ready", "degraded"].includes(this.state)) return;
+    this.touchPointers.add(event.pointerId);
     this.touchGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, progress: this.progress, axis: null };
   }
   _moveTouch(event) {
@@ -362,10 +387,10 @@ var ParallaxBanner = class {
     if (gesture.axis !== "horizontal") return;
     this.tracking = true;
     this.returning = null;
-    this.progress = clamp(gesture.progress + dx / Math.max(1, this.width * 0.55), -1, 1);
+    this.progress = clamp(gesture.progress + dx / Math.max(1, this.root.getBoundingClientRect().width * 0.55), -1, 1);
     this._schedule();
   }
-  _finishTouch(event) {
+  _finishTouch(event, cancelled = false) {
     const gesture = this.touchGesture;
     if (!gesture || gesture.id !== event.pointerId) return;
     this.touchGesture = null;
@@ -374,11 +399,11 @@ var ParallaxBanner = class {
     } catch {
     }
     this._returnHome();
-    if (gesture.axis === "horizontal") this._emit("interaction", { phase: "end", pointerType: "touch" });
+    if (gesture.axis === "horizontal") this._emit("interaction", { phase: "end", pointerType: "touch", cancelled });
   }
   _resize() {
     if (this.destroyed) return;
-    const width = this.root.getBoundingClientRect().width || this.root.clientWidth;
+    const width = this.root.clientWidth || this.root.getBoundingClientRect().width;
     if (!width) return;
     const rule = this.config.height;
     const height = width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
@@ -399,11 +424,19 @@ var ParallaxBanner = class {
     const reference = this.height / config.baseHeight;
     const shared = config.mode === "aligned" ? alignedScale(config, this.width, this.height) : reference;
     for (const layer of this.layers) {
-      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint && !(config.interaction.touch === "drag" && !this.reducedQuery.matches));
+      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint && config.interaction.touch !== "drag");
+      layer.layoutScale = layoutScale(config, layer, this.width, this.height, shared);
       const logicalWidth = layer.naturalWidth / config.pixelRatio;
       const logicalHeight = layer.naturalHeight / config.pixelRatio;
-      layer.element.style.width = `${logicalWidth * shared * layer.scale}px`;
-      layer.element.style.height = `${logicalHeight * shared * layer.scale}px`;
+      const width = logicalWidth * layer.layoutScale * layer.scale;
+      const height = logicalHeight * layer.layoutScale * layer.scale;
+      layer.element.style.width = `${width}px`;
+      layer.element.style.height = `${height}px`;
+      if (layer.fit === "contain") {
+        layer.element.style.position = "absolute";
+        layer.element.style.left = `${(this.width - width) * layer.position[0]}px`;
+        layer.element.style.top = `${(this.height - height) * layer.position[1]}px`;
+      }
     }
   }
   async _load() {
@@ -512,7 +545,7 @@ var ParallaxBanner = class {
     const reference = this.height / this.config.baseHeight;
     const progress = this.progress * this.config.interaction.strength;
     for (const layer of this.layers) {
-      const value = layerState(layer, progress, reference);
+      const value = layerState(layer, progress, layer.fit === "contain" ? layer.layoutScale : reference);
       layer.element.style.transform = `translate3d(${value.x.toFixed(3)}px,${value.y.toFixed(3)}px,0) rotate(${value.rotate}deg) scale(${value.scale})`;
       layer.element.style.opacity = String(value.opacity);
       layer.element.style.filter = value.blur > 1e-4 ? `blur(${value.blur}px)` : "";
@@ -531,6 +564,7 @@ var ParallaxBanner = class {
   _reset() {
     const gesture = this.touchGesture;
     this.touchGesture = null;
+    this.touchPointers.clear();
     if (gesture) try {
       if (this.root.hasPointerCapture?.(gesture.id)) this.root.releasePointerCapture(gesture.id);
     } catch {

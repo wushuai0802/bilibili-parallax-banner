@@ -1,6 +1,7 @@
 export const VERSION: string;
 export interface BannerLayer {
   id?: string; src: string; type?: 'image' | 'video'; required?: boolean;
+  fit?: 'canvas' | 'contain'; position?: [number,number];
   scale?: number; offset?: [number,number]; initial?: [number,number];
   opacity?: number; rotate?: number; blur?: number; requireAlpha?: boolean;
 }

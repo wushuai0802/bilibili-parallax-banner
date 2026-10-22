@@ -9,7 +9,7 @@ const port = Number(process.env.PORT ?? 25996);
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://127.0.0.1');
-    const path = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
+    const path = decodeURIComponent(url.pathname.endsWith('/') ? `${url.pathname}index.html` : url.pathname);
     const first = path.split('/')[1];
     if (!allowed.has(first)) throw new Error('Not public');
     const file = await realpath(resolve(root, `.${path}`));

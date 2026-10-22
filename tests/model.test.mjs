@@ -53,6 +53,13 @@ test('JSON-relative paths resolve against manifest location and unsafe schemes f
   assert.throws(()=>resolveAssetUrl('javascript:alert(1)','https://example.org'),/protocol/);
 });
 
+test('subject fitting is opt-in and invalid placement fails explicitly',()=>{
+  assert.equal(config().layers[0].fit,'canvas');
+  assert.throws(()=>normalizeConfig({layers:[{src:'x',fit:'stretch'}]}),/fit/);
+  assert.throws(()=>normalizeConfig({mode:'bilibili',layers:[{src:'x',fit:'contain'}]}),/fit/);
+  assert.throws(()=>normalizeConfig({layers:[{src:'x',position:[.5,2]}]}),/position/);
+});
+
 test('alternate opacity and negative blur remain bounded', () => {
   const value=fromBilibiliSplitLayer({version:'1',layers:[{resources:[{src:'x'}],opacity:{initial:.9,offset:.5,wrap:'alternate'},blur:{initial:1,offset:-4}}]});
   const state=layerState(value.layers[0],1,1);
