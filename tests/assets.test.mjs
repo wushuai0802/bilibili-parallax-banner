@@ -39,3 +39,10 @@ test('SVG without explicit intrinsic dimensions is rejected',()=>fixture(async d
   const result=await validateManifest(join(dir,'banner.json'));
   assert.equal(result.ok,false);assert.ok(result.errors.some(x=>x.includes('absolute width')));
 }));
+
+test('a layer named poster must still meet the aligned canvas contract',()=>fixture(async dir=>{
+  await writeFile(join(dir,'banner.json'),JSON.stringify({layers:[{id:'poster',src:'small.svg'}]}));
+  await writeFile(join(dir,'small.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><rect width="120" height="80" fill="red"/></svg>');
+  const result=await validateManifest(join(dir,'banner.json'));
+  assert.equal(result.ok,false);assert.ok(result.errors.some(error=>error.includes('Canvas must be 3840x360')));
+}));

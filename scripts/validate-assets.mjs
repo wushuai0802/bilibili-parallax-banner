@@ -12,7 +12,10 @@ export async function validateManifest(manifestPath) {
   let bytes = 0;
   const expectedWidth = config.baseWidth * config.pixelRatio;
   const expectedHeight = config.baseHeight * config.pixelRatio;
-  for (const item of [...config.layers, ...(config.poster ? [{id:'poster',src:config.poster,type:'image'}] : []), ...(config.mobilePoster ? [{id:'mobile-poster',src:config.mobilePoster,type:'image'}] : [])]) {
+  const entries = [...config.layers.map(item => ({item, poster: false})),
+    ...(config.poster ? [{item:{id:'poster',src:config.poster,type:'image'},poster:true}] : []),
+    ...(config.mobilePoster ? [{item:{id:'mobile-poster',src:config.mobilePoster,type:'image'},poster:true}] : [])];
+  for (const {item, poster} of entries) {
     const problems = [];
     try {
       if (item.type === 'video') throw new Error('Video validation requires an external media probe; not checked by this image validator');
@@ -38,11 +41,11 @@ export async function validateManifest(manifestPath) {
       for (let i = decoded.info.channels - 1; i < decoded.data.length; i += decoded.info.channels) {
         if (decoded.data[i] < 255) {hasTransparentPixels = true; break;}
       }
-      if (config.mode === 'aligned' && !['poster','mobile-poster'].includes(item.id) && (metadata.width !== expectedWidth || metadata.height !== expectedHeight)) {
+      if (config.mode === 'aligned' && !poster && (metadata.width !== expectedWidth || metadata.height !== expectedHeight)) {
         problems.push(`Canvas must be ${expectedWidth}x${expectedHeight}`);
       }
       if (item.requireAlpha && !hasTransparentPixels) problems.push('Foreground requires actual transparent pixels');
-      if (item.id === config.layers[0].id && hasTransparentPixels && !config.poster) problems.push('Base layer must be opaque unless a poster is supplied');
+      if (!poster && item.id === config.layers[0].id && hasTransparentPixels && !config.poster) problems.push('Base layer must be opaque unless a poster is supplied');
       if (info.size > 300 * 1024) warnings.push(`${item.id}: over 300 KiB; optimize without damaging alpha edges`);
       rows.push({id:item.id, file:item.src, dimensions:`${metadata.width}x${metadata.height}`, transparent:hasTransparentPixels, bytes:info.size, ok:problems.length === 0});
     } catch (error) {

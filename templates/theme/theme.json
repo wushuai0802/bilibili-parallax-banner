@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "new-theme-template",
+  "artwork": {
+    "author": "Bilibili Parallax Banner contributors",
+    "source": "Original geometric placeholders in this template",
+    "license": "MIT"
+  },
+  "breakpoint": 767,
+  "minimumMargin": 4,
+  "variants": {
+    "desktop": {
+      "manifest": "desktop/banner.json",
+      "viewports": [768, 1024, 1280, 1440, 1920, 2560, 3440, 5120],
+      "protectedRegions": [
+        {"id": "subject-head", "layerId": "subject", "rect": [1170, 25, 140, 130]}
+      ],
+      "textZones": [
+        {"id": "site-title", "rect": [0.04, 0.45, 0.3, 0.5]}
+      ]
+    },
+    "mobile": {
+      "manifest": "mobile/banner.json",
+      "viewports": [280, 320, 360, 375, 390, 412, 430, 600, 767],
+      "protectedRegions": [
+        {"id": "subject-head", "layerId": "subject", "rect": [226, 88, 72, 75]}
+      ],
+      "textZones": [
+        {"id": "site-title", "rect": [0.048, 0.05, 0.6, 0.32]}
+      ]
+    }
+  }
+}

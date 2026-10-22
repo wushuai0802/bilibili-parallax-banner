@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "mode": "aligned",
+  "baseWidth": 375,
+  "baseHeight": 200,
+  "pixelRatio": 3,
+  "description": "Replace with a description of your mobile scene",
+  "background": "#173d42",
+  "poster": "poster.svg",
+  "height": {"min": 120, "max": 280, "ratio": 0.5333333333333333, "mobile": 180, "breakpoint": 0},
+  "interaction": {"enabled": true, "strength": 0.65, "touch": "drag", "resetDuration": 200},
+  "layers": [
+    {"id": "background", "src": "01-background.svg", "offset": [2, 0], "required": true},
+    {"id": "subject", "src": "02-subject.svg", "fit": "contain", "position": [0.5, 1], "offset": [8, 0], "requireAlpha": true},
+    {"id": "foreground", "src": "03-foreground.svg", "offset": [20, 2], "requireAlpha": true}
+  ]
+}

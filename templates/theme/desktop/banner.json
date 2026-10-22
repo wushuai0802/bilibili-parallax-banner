@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "mode": "aligned",
+  "baseWidth": 1920,
+  "baseHeight": 216,
+  "pixelRatio": 2,
+  "description": "Replace with a description of your desktop scene",
+  "background": "#173d42",
+  "poster": "poster.svg",
+  "height": {"min": 190, "max": 280, "ratio": 0.125, "mobile": 180, "breakpoint": 0},
+  "interaction": {"enabled": true, "strength": 1, "touch": "drag", "resetDuration": 200},
+  "layers": [
+    {"id": "background", "src": "01-background.svg", "offset": [6, 0], "required": true},
+    {"id": "subject", "src": "02-subject.svg", "fit": "contain", "position": [0.5, 1], "offset": [24, 0], "requireAlpha": true},
+    {"id": "foreground", "src": "03-foreground.svg", "offset": [64, 6], "requireAlpha": true}
+  ]
+}

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add a dedicated image delivery specification and reusable desktop/mobile artwork templates with an AI task brief.
+- Add paired-theme validation for images, posters, recorded artwork metadata, subject regions and declared text zones across sampled widths and motion positions.
+- Include template validation in the standard checks and prevent poster-like layer IDs from bypassing image canvas checks.
+
 ## 1.2.0 - 2026-10-23
 
 - Add opt-in contained subject layers and normalized placement, independent of background overscan.
