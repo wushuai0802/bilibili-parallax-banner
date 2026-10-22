@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="零运行时依赖的分层视差 Banner，支持直接接入、素材替换和手机适配。">
+  <title>Layered Banner / 分层视差头图</title>
+  <link rel="stylesheet" href="./dist/banner.css">
+  <link rel="stylesheet" href="./demo.css">
+</head>
+<body>
+  <header class="page-bar"><a class="wordmark" href="./index.html">LAYERED <span>BANNER</span></a><nav><a href="https://github.com/wushuai0802/bilibili-parallax-banner#readme">对接文档</a><a href="https://github.com/wushuai0802/bilibili-parallax-banner">GitHub ↗</a></nav></header>
+  <main>
+    <div class="intro"><p class="eyebrow">POINTER PARALLAX / V1.0</p><h1>让画面，多一点纵深。</h1><p>在下面的横幅内左右移动鼠标，远景、中景与前景会以不同幅度移动。</p></div>
+    <section class="preview" aria-label="Banner 交互预览">
+      <div id="banner" class="demo-banner">
+        <div class="banner-copy"><span>FIELD NOTES</span><strong>Somewhere<br>between layers.</strong></div>
+      </div>
+      <div class="preview-foot"><span id="banner-status" role="status">正在载入图层…</span><span>原创建模示例 · 3 个图层</span></div>
+    </section>
+    <div class="controls" aria-label="交互控制">
+      <div><button type="button" id="motion-toggle" aria-pressed="false">暂停动效</button><button type="button" data-progress="-1">左侧位置</button><button type="button" data-progress="0">归位</button><button type="button" data-progress="1">右侧位置</button></div>
+      <label class="strength">位移强度 <input id="strength" type="range" min="0" max="1" step="0.1" value="1"><output id="strength-value">1.0×</output></label>
+    </div>
+    <section class="notes" aria-label="组件接入方式">
+      <article><b>01 / 一份配置</b><h2>网站负责内容，组件负责横幅。</h2><p>不接管导航、搜索、路由和登录。仅向你指定的容器添加画面与动效，卸载时移除自己的节点。</p></article>
+      <article><b>02 / 固定素材约定</b><h2>保留文件名，替换图片即可。</h2><p>默认三张图使用相同画布，前景保留透明。布局、位移余量和尺寸适配由组件处理。</p></article>
+      <article><b>03 / 两种引入方式</b><h2>ESM 或 script 标签。</h2><p>支持 React、Vue 与普通网页。首屏海报兜底；触屏、减少动态效果与页面不可见时自动静止。</p></article>
+    </section>
+    <footer>独立实现 · MIT · 无 B站插画素材、账号或接口依赖</footer>
+  </main>
+  <script src="./dist/banner.min.js"></script>
+  <script src="./assets/demo/banner.config.js"></script>
+  <script src="./demo.js"></script>
+</body>
+</html>

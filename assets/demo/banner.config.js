@@ -1,0 +1,55 @@
+/* Generated from banner.json. Do not edit. */
+window.BANNER_CONFIG = {
+  "version": 1,
+  "mode": "aligned",
+  "baseWidth": 1920,
+  "baseHeight": 180,
+  "pixelRatio": 2,
+  "description": "Layered green hills, distant sunlight and foreground reeds",
+  "poster": "poster.webp",
+  "height": {
+    "min": 155,
+    "max": 240,
+    "ratio": 0.09375,
+    "mobile": 144,
+    "breakpoint": 640
+  },
+  "interaction": {
+    "enabled": true,
+    "strength": 1,
+    "resetDuration": 200
+  },
+  "layers": [
+    {
+      "id": "sky",
+      "src": "01_bg.svg",
+      "offset": [
+        6,
+        0
+      ],
+      "required": true,
+      "requireAlpha": false
+    },
+    {
+      "id": "hills",
+      "src": "02_mid.svg",
+      "offset": [
+        28,
+        6
+      ],
+      "required": false,
+      "requireAlpha": true
+    },
+    {
+      "id": "reeds",
+      "src": "03_fg.svg",
+      "offset": [
+        64,
+        12
+      ],
+      "required": false,
+      "requireAlpha": true
+    }
+  ]
+};
+window.BANNER_CONFIG.baseUrl = new URL('.', document.currentScript.src).href;

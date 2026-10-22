@@ -1,0 +1,25 @@
+{
+  "name": "bilibili-parallax-banner",
+  "version": "1.0.0",
+  "description": "Dependency-free layered pointer-parallax banner with Bilibili-style motion, responsive layout and an asset contract.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "main": "dist/banner.umd.cjs",
+  "module": "dist/banner.js",
+  "types": "dist/banner.d.ts",
+  "exports": {
+    ".": { "types": "./dist/banner.d.ts", "import": "./dist/banner.js", "require": "./dist/banner.umd.cjs" },
+    "./style.css": "./dist/banner.css"
+  },
+  "files": ["dist", "README.md", "LICENSE", "docs"],
+  "repository": { "type": "git", "url": "https://github.com/wushuai0802/bilibili-parallax-banner.git" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "validate": "node scripts/validate-assets.mjs",
+    "dev": "node scripts/serve.mjs",
+    "check": "npm run build && npm test && npm run validate"
+  },
+  "devDependencies": { "esbuild": "0.28.2", "jsdom": "26.1.0", "sharp": "0.35.5" }
+}

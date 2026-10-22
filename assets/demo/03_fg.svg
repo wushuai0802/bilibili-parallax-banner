@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="360" viewBox="0 0 3840 360" preserveAspectRatio="xMidYMid slice">
+  <g fill="#04231c">
+    <path d="M0 360 L0 268 C 90 236, 190 268, 268 244 C 340 222, 420 262, 500 286 L520 360 Z"/>
+    <path d="M3840 360 L3840 252 C 3740 224, 3640 262, 3560 240 C 3480 218, 3400 258, 3320 284 L3300 360 Z"/>
+  </g>
+  <g fill="#07332a">
+    <path d="M470 360 C 500 292, 560 268, 616 300 C 668 330, 672 360, 672 360 Z"/>
+    <path d="M3170 360 C 3200 296, 3258 272, 3312 302 C 3362 330, 3366 360, 3366 360 Z"/>
+  </g>
+  <g stroke="#04231c" stroke-width="9" stroke-linecap="round" fill="none">
+    <path d="M240 360 C 226 300, 246 250, 262 214"/>
+    <path d="M330 360 C 322 306, 338 264, 352 232"/>
+    <path d="M3520 360 C 3506 302, 3526 254, 3542 218"/>
+    <path d="M3610 360 C 3602 308, 3618 266, 3632 234"/>
+  </g>
+  <g fill="#0a4437">
+    <ellipse cx="262" cy="210" rx="16" ry="34" transform="rotate(-12 262 210)"/>
+    <ellipse cx="352" cy="228" rx="14" ry="30" transform="rotate(10 352 228)"/>
+    <ellipse cx="3542" cy="214" rx="16" ry="34" transform="rotate(12 3542 214)"/>
+    <ellipse cx="3632" cy="230" rx="14" ry="30" transform="rotate(-10 3632 230)"/>
+  </g>
+</svg>

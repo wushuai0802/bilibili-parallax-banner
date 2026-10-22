@@ -1,0 +1,572 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/banner.js
+var banner_exports = {};
+__export(banner_exports, {
+  ParallaxBanner: () => ParallaxBanner,
+  VERSION: () => VERSION,
+  createBanner: () => createBanner,
+  fromBilibiliSplitLayer: () => fromBilibiliSplitLayer,
+  loadBanner: () => loadBanner
+});
+module.exports = __toCommonJS(banner_exports);
+
+// src/model.js
+var VERSION = "1.0.0";
+var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+function finite(value, fallback, name, low = -1e4, high = 1e4) {
+  if (value === void 0) return fallback;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < low || value > high) {
+    throw new TypeError(`${name} must be a finite number in [${low}, ${high}]`);
+  }
+  return value;
+}
+function pair(value, fallback, name) {
+  if (value === void 0) return fallback;
+  if (!Array.isArray(value) || value.length !== 2) throw new TypeError(`${name} must be [x, y]`);
+  return value.map((item, index) => finite(item, 0, `${name}[${index}]`));
+}
+function curve(value, name) {
+  if (value === void 0) return void 0;
+  if (!Array.isArray(value) || value.length !== 4 || value.some((x) => typeof x !== "number" || !Number.isFinite(x))) {
+    throw new TypeError(`${name} must be four bezier coordinates`);
+  }
+  if (value[0] < 0 || value[0] > 1 || value[2] < 0 || value[2] > 1) throw new TypeError(`${name} x coordinates must be in [0, 1]`);
+  return value;
+}
+function channel(value = {}, defaults, name) {
+  const wrap = value.wrap ?? "clamp";
+  if (!["clamp", "alternate"].includes(wrap)) throw new TypeError(`${name}.wrap is unsupported`);
+  return {
+    initial: Array.isArray(defaults.initial) ? pair(value.initial, defaults.initial, name) : finite(value.initial, defaults.initial, name),
+    offset: Array.isArray(defaults.offset) ? pair(value.offset, defaults.offset, name) : finite(value.offset, defaults.offset, name),
+    curve: curve(value.offsetCurve, name),
+    wrap
+  };
+}
+function normalizeConfig(input) {
+  if (!input || typeof input !== "object") throw new TypeError("Banner config must be an object");
+  if (input.version !== void 0 && input.version !== 1) throw new TypeError("Unsupported banner config version");
+  if (!Array.isArray(input.layers) || input.layers.length < 1 || input.layers.length > 32) throw new TypeError("Use 1 to 32 layers");
+  const mode = input.mode ?? "aligned";
+  if (!["aligned", "bilibili"].includes(mode)) throw new TypeError("Unknown layout mode");
+  const height = input.height ?? {};
+  const min = finite(height.min, 155, "height.min", 1, 2e3);
+  const max = finite(height.max, 240, "height.max", min, 2e3);
+  const config = {
+    version: 1,
+    mode,
+    baseWidth: finite(input.baseWidth, 1920, "baseWidth", 1, 2e4),
+    baseHeight: finite(input.baseHeight, 180, "baseHeight", 1, 4e3),
+    pixelRatio: finite(input.pixelRatio, 2, "pixelRatio", 0.1, 8),
+    baseUrl: input.baseUrl,
+    description: String(input.description ?? ""),
+    poster: input.poster,
+    mobilePoster: input.mobilePoster,
+    posterPosition: input.posterPosition ?? "50% 50%",
+    background: input.background ?? "#173d42",
+    taper: input.taper !== false,
+    loadTimeout: finite(input.loadTimeout, 1e4, "loadTimeout", 100, 12e4),
+    height: {
+      min,
+      max,
+      ratio: finite(height.ratio, 0.09375, "height.ratio", 0.01, 2),
+      mobile: finite(height.mobile, 144, "height.mobile", 1, 2e3),
+      breakpoint: finite(height.breakpoint, 640, "height.breakpoint", 0, 3e3)
+    },
+    interaction: {
+      enabled: input.interaction?.enabled !== false,
+      strength: finite(input.interaction?.strength, 1, "interaction.strength", 0, 3),
+      resetDuration: finite(input.interaction?.resetDuration, 200, "interaction.resetDuration", 0, 2e3)
+    }
+  };
+  const ids = /* @__PURE__ */ new Set();
+  config.layers = input.layers.map((layer, index) => {
+    const id = String(layer.id ?? `layer-${index}`);
+    if (ids.has(id)) throw new TypeError(`Duplicate layer id: ${id}`);
+    ids.add(id);
+    if (typeof layer.src !== "string" || !layer.src.trim()) throw new TypeError(`Missing src for ${id}`);
+    const type = layer.type ?? (/\.(mp4|webm)(?:[?#]|$)/i.test(layer.src) ? "video" : "image");
+    if (!["video", "image"].includes(type)) throw new TypeError(`Unsupported media type for ${id}`);
+    return {
+      ...layer,
+      id,
+      type,
+      required: layer.required ?? index === 0,
+      scale: finite(layer.scale, 1, `${id}.scale`, 0.01, 10),
+      offset: pair(layer.offset, [0, 0], `${id}.offset`),
+      initial: pair(layer.initial, [0, 0], `${id}.initial`),
+      opacity: finite(layer.opacity, 1, `${id}.opacity`, 0, 1),
+      rotate: finite(layer.rotate, 0, `${id}.rotate`),
+      blur: finite(layer.blur, 0, `${id}.blur`, 0, 100)
+    };
+  });
+  return config;
+}
+function resolveAssetUrl(src, baseUrl) {
+  const url = new URL(src, baseUrl);
+  if (!["http:", "https:", "file:", "blob:"].includes(url.protocol) && !(url.protocol === "data:" && /^data:image\//i.test(src))) {
+    throw new TypeError("Unsupported asset URL protocol");
+  }
+  return url.href;
+}
+function bezierAt(progress, points) {
+  if (!points) return progress;
+  const sign = progress < 0 ? -1 : 1;
+  const x = clamp(Math.abs(progress), 0, 1);
+  const [x1, y1, x2, y2] = points;
+  const cubic = (t, a, b) => 3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t ** 2 * b + t ** 3;
+  let low = 0, high = 1;
+  for (let i = 0; i < 24; i++) {
+    const t = (low + high) / 2;
+    if (cubic(t, x1, x2) < x) low = t;
+    else high = t;
+  }
+  return sign * cubic((low + high) / 2, y1, y2);
+}
+function layerState(layer, progress, referenceScale = 1) {
+  const motion = layer.motion;
+  const sample = (entry) => bezierAt(progress, entry?.curve);
+  const translation = motion?.translate;
+  const initial = translation?.initial ?? layer.initial;
+  const offset = translation?.offset ?? layer.offset;
+  const factor = referenceScale * layer.scale;
+  let opacity = layer.opacity;
+  let blur = layer.blur;
+  if (motion?.opacity) {
+    opacity = motion.opacity.initial + motion.opacity.offset * sample(motion.opacity);
+    if (motion.opacity.wrap === "alternate") {
+      const n = (opacity % 2 + 2) % 2;
+      opacity = n <= 1 ? n : 2 - n;
+    }
+  }
+  if (motion?.blur) {
+    blur = motion.blur.initial + motion.blur.offset * sample(motion.blur);
+    if (motion.blur.wrap === "alternate") blur = Math.abs(blur);
+  }
+  return {
+    x: (initial[0] + offset[0] * (translation ? sample(translation) : progress)) * factor,
+    y: (initial[1] + offset[1] * (translation ? sample(translation) : progress)) * factor,
+    scale: Math.max(0.01, 1 + (motion?.scale?.offset ?? 0) * sample(motion?.scale)),
+    rotate: layer.rotate + (motion?.rotate?.offset ?? 0) * sample(motion?.rotate),
+    opacity: clamp(opacity, 0, 1),
+    blur: Math.max(0, blur)
+  };
+}
+function alignedScale(config, width, height) {
+  const reference = height / config.baseHeight;
+  let paddingX = 1, paddingY = 1;
+  let minimumScale = 1;
+  for (const layer of config.layers) {
+    const strength = config.interaction.strength;
+    paddingX = Math.max(paddingX, (Math.abs(layer.initial[0]) + Math.abs(layer.offset[0]) * strength) * reference * layer.scale + 1);
+    paddingY = Math.max(paddingY, (Math.abs(layer.initial[1]) + Math.abs(layer.offset[1]) * strength) * reference * layer.scale + 1);
+    minimumScale = Math.min(minimumScale, layer.scale);
+  }
+  return Math.max((width + 2 * paddingX) / config.baseWidth, (height + 2 * paddingY) / config.baseHeight) / minimumScale;
+}
+function fromBilibiliSplitLayer(input, options = {}) {
+  const envelope = typeof input === "string" ? JSON.parse(input) : input;
+  const data = envelope?.data ?? envelope;
+  const parsed = typeof data.split_layer === "string" ? JSON.parse(data.split_layer) : data.split_layer ?? data;
+  if (String(parsed.version) !== "1" || !Array.isArray(parsed.layers)) throw new TypeError("Only Bilibili split_layer version 1 is supported");
+  if (parsed.extensions && Object.keys(parsed.extensions).length) throw new TypeError("split_layer extensions require an application adapter");
+  return normalizeConfig({
+    ...options,
+    version: 1,
+    mode: "bilibili",
+    baseHeight: 155,
+    pixelRatio: 1,
+    poster: options.poster ?? data.pic,
+    layers: parsed.layers.map((item, index) => {
+      const resource = item.resources?.[0];
+      if (!resource?.src) throw new TypeError(`Missing resource in layer ${index}`);
+      const scale = channel(item.scale, { initial: 1, offset: 0 }, "scale");
+      const translate = channel(item.translate, { initial: [0, 0], offset: [0, 0] }, "translate");
+      const rotate = channel(item.rotate, { initial: 0, offset: 0 }, "rotate");
+      const blur = channel(item.blur, { initial: 0, offset: 0 }, "blur");
+      const opacity = channel(item.opacity, { initial: 1, offset: 0 }, "opacity");
+      return {
+        id: `bili-${item.id ?? index}`,
+        name: item.name,
+        src: resource.src,
+        required: index === 0,
+        scale: scale.initial,
+        initial: translate.initial,
+        offset: translate.offset,
+        rotate: rotate.initial,
+        opacity: opacity.initial,
+        blur: blur.initial,
+        motion: { scale, translate, rotate, blur, opacity }
+      };
+    })
+  });
+}
+
+// src/banner.js
+var mounted = /* @__PURE__ */ new WeakMap();
+var ParallaxBanner = class {
+  constructor(root, input) {
+    if (!root || root.nodeType !== 1) throw new TypeError("Banner root must be an element");
+    if (mounted.has(root)) throw new Error("Banner already mounted; destroy the previous instance first");
+    this.config = normalizeConfig(input);
+    this.root = root;
+    this.win = root.ownerDocument.defaultView;
+    this.doc = root.ownerDocument;
+    this.baseUrl = this.config.baseUrl ?? this.doc.baseURI;
+    for (const layer of this.config.layers) resolveAssetUrl(layer.src, this.baseUrl);
+    if (this.config.poster) resolveAssetUrl(this.config.poster, this.baseUrl);
+    if (this.config.mobilePoster) resolveAssetUrl(this.config.mobilePoster, this.baseUrl);
+    this.layers = [];
+    this.cleanups = [];
+    this.progress = 0;
+    this.tracking = false;
+    this.userPaused = false;
+    this.visible = true;
+    this.state = "loading";
+    this.destroyed = false;
+    this.frame = 0;
+    this.returning = null;
+    this.width = 0;
+    this.height = 0;
+    this._saved = {
+      height: root.style.height,
+      background: root.style.backgroundColor,
+      hadClass: root.classList.contains("lpb"),
+      state: root.getAttribute("data-banner-state")
+    };
+    this.stage = this.doc.createElement("div");
+    this.stage.className = "lpb__stage";
+    this.stage.setAttribute("aria-hidden", "true");
+    if (this.config.description) {
+      this.stage.removeAttribute("aria-hidden");
+      this.stage.setAttribute("role", "img");
+      this.stage.setAttribute("aria-label", this.config.description);
+    }
+    this.root.classList.add("lpb");
+    this.root.style.backgroundColor = this.config.background;
+    this.root.append(this.stage);
+    this._poster();
+    if (this.config.taper) {
+      this.taper = this.doc.createElement("div");
+      this.taper.className = "lpb__taper";
+      this.taper.setAttribute("aria-hidden", "true");
+      this.root.append(this.taper);
+    }
+    this.reducedQuery = this.win.matchMedia("(prefers-reduced-motion: reduce)");
+    this.pointerQuery = this.win.matchMedia("(any-hover: hover) and (any-pointer: fine)");
+    this.motionAllowed = () => this.config.interaction.enabled && !this.reducedQuery.matches && this.pointerQuery.matches;
+    this._bind();
+    this._resize();
+    mounted.set(root, this);
+    this._setState("loading");
+    this.ready = this._load();
+  }
+  _emit(type, detail) {
+    this.root.dispatchEvent(new this.win.CustomEvent(`banner:${type}`, { detail }));
+  }
+  _setState(state, extra = {}) {
+    if (this.destroyed) return;
+    this.state = state;
+    this.root.setAttribute("data-banner-state", state);
+    this._emit("state", { state, ...extra });
+  }
+  _poster() {
+    if (!this.config.poster && !this.config.mobilePoster) return;
+    const img = this.doc.createElement("img");
+    img.className = "lpb__poster";
+    img.alt = "";
+    img.loading = "eager";
+    img.fetchPriority = "high";
+    img.decoding = "async";
+    img.style.objectPosition = this.config.posterPosition;
+    img.src = resolveAssetUrl(this.config.poster ?? this.config.mobilePoster, this.baseUrl);
+    this.stage.append(img);
+    this.poster = img;
+    img.addEventListener("error", () => this._emit("error", { layerId: "poster", message: "Poster failed to load" }), { once: true });
+  }
+  _listen(target, type, handler, options) {
+    target.addEventListener(type, handler, options);
+    this.cleanups.push(() => target.removeEventListener(type, handler, options));
+  }
+  _bind() {
+    this._listen(this.root, "pointermove", (event) => {
+      if (event.pointerType === "touch" || !this.motionAllowed() || this.userPaused || !this.visible || !["ready", "degraded"].includes(this.state)) return;
+      const rect = this.root.getBoundingClientRect();
+      if (!rect.width || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
+      if (!this.tracking) {
+        this.entryX = event.clientX;
+        this.tracking = true;
+      }
+      this.returning = null;
+      this.progress = clamp((event.clientX - this.entryX) / rect.width, -1, 1);
+      this._schedule();
+    }, { passive: true });
+    this._listen(this.root, "pointerleave", () => this._returnHome());
+    this._listen(this.root, "pointercancel", () => this._returnHome());
+    this._listen(this.win, "blur", () => this._returnHome());
+    const preferenceChange = () => {
+      if (!this.motionAllowed()) this._reset();
+      this._syncVideos();
+      this._emit("motion", { enabled: this.motionAllowed() });
+    };
+    this._listen(this.reducedQuery, "change", preferenceChange);
+    this._listen(this.pointerQuery, "change", preferenceChange);
+    this._listen(this.doc, "visibilitychange", () => {
+      if (this.doc.hidden) this._reset();
+      this._syncVideos();
+    });
+    if (this.win.ResizeObserver) {
+      this.resizeObserver = new this.win.ResizeObserver(() => this._resize());
+      this.resizeObserver.observe(this.root);
+    } else this._listen(this.win, "resize", () => this._resize(), { passive: true });
+    if (this.win.IntersectionObserver) {
+      this.intersectionObserver = new this.win.IntersectionObserver((entries) => {
+        this.visible = entries[0]?.isIntersecting !== false;
+        if (!this.visible) this._reset();
+        this._syncVideos();
+      });
+      this.intersectionObserver.observe(this.root);
+    }
+  }
+  _resize() {
+    if (this.destroyed) return;
+    const width = this.root.getBoundingClientRect().width || this.root.clientWidth;
+    if (!width) return;
+    const rule = this.config.height;
+    const height = width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
+    if (this.width === width && this.height === height) return;
+    this.width = width;
+    this.height = height;
+    this.root.style.height = `${height}px`;
+    if (this.poster) {
+      const source = width <= rule.breakpoint ? this.config.mobilePoster ?? this.config.poster : this.config.poster ?? this.config.mobilePoster;
+      const url = resolveAssetUrl(source, this.baseUrl);
+      if (this.poster.src !== url) this.poster.src = url;
+    }
+    this._sizeLayers();
+    this._schedule();
+  }
+  _sizeLayers() {
+    const config = this.config;
+    const reference = this.height / config.baseHeight;
+    const shared = config.mode === "aligned" ? alignedScale(config, this.width, this.height) : reference;
+    for (const layer of this.layers) {
+      layer.wrap.hidden = Boolean(config.mobilePoster && this.width <= config.height.breakpoint);
+      const logicalWidth = layer.naturalWidth / config.pixelRatio;
+      const logicalHeight = layer.naturalHeight / config.pixelRatio;
+      layer.element.style.width = `${logicalWidth * shared * layer.scale}px`;
+      layer.element.style.height = `${logicalHeight * shared * layer.scale}px`;
+    }
+  }
+  async _load() {
+    const results = await Promise.allSettled(this.config.layers.map((layer, index) => this._loadLayer(layer, index)));
+    if (this.destroyed) return this;
+    const failed = results.flatMap((result, index) => result.status === "rejected" ? [this.config.layers[index]] : []);
+    const fatal = failed.some((layer) => layer.required);
+    if (fatal) {
+      this.layers.forEach((layer) => layer.wrap.remove());
+      this.layers = [];
+      this._setState("error", { failedLayerIds: failed.map((layer) => layer.id) });
+    } else {
+      this.layers.sort((a, b) => a.index - b.index);
+      this.layers.forEach((layer) => this.stage.append(layer.wrap));
+      this._sizeLayers();
+      this._paint();
+      this._setState(failed.length ? "degraded" : "ready", { failedLayerIds: failed.map((layer) => layer.id) });
+      this._syncVideos();
+    }
+    this._emit("ready", { state: this.state, loadedLayers: this.layers.length, failedLayerIds: failed.map((layer) => layer.id) });
+    return this;
+  }
+  _loadLayer(definition, index) {
+    return new Promise((resolve, reject) => {
+      const element = this.doc.createElement(definition.type === "video" ? "video" : "img");
+      const wrap = this.doc.createElement("div");
+      wrap.className = "lpb__layer";
+      wrap.dataset.layerId = definition.id;
+      element.className = "lpb__media";
+      element.draggable = false;
+      if (definition.type === "video") {
+        element.muted = true;
+        element.loop = true;
+        element.playsInline = true;
+        element.preload = "metadata";
+      } else {
+        element.alt = "";
+        element.decoding = "async";
+        element.loading = "eager";
+        if (index === 0 && !this.poster) element.fetchPriority = "high";
+      }
+      wrap.append(element);
+      let settled = false;
+      const onLoad = () => finish();
+      const onError = () => finish(new Error("Media failed to load"));
+      const eventType = definition.type === "video" ? "loadedmetadata" : "load";
+      const timer = this.win.setTimeout(() => finish(new Error("Media loading timed out")), this.config.loadTimeout);
+      const cleanup = () => {
+        this.win.clearTimeout(timer);
+        element.removeEventListener(eventType, onLoad);
+        element.removeEventListener("error", onError);
+      };
+      const finish = (error) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (error) {
+          if (!this.destroyed) this._emit("error", { layerId: definition.id, message: error.message });
+          if (definition.type === "video") {
+            element.pause();
+            element.removeAttribute("src");
+          }
+          reject(error);
+          return;
+        }
+        const naturalWidth = element.naturalWidth || element.videoWidth;
+        const naturalHeight = element.naturalHeight || element.videoHeight;
+        if (!naturalWidth || !naturalHeight) {
+          reject(new Error("Media has no dimensions"));
+          return;
+        }
+        if (this.config.mode === "aligned" && (naturalWidth !== this.config.baseWidth * this.config.pixelRatio || naturalHeight !== this.config.baseHeight * this.config.pixelRatio)) {
+          this._emit("error", { layerId: definition.id, message: "Layer dimensions do not match the aligned canvas" });
+          reject(new Error("Layer dimensions do not match the aligned canvas"));
+          return;
+        }
+        this.layers.push({ ...definition, element, wrap, index, naturalWidth, naturalHeight });
+        resolve();
+      };
+      this.cleanups.push(() => finish(new Error("Banner destroyed")));
+      element.addEventListener(eventType, onLoad, { once: true });
+      element.addEventListener("error", onError, { once: true });
+      try {
+        element.src = resolveAssetUrl(definition.src, this.baseUrl);
+      } catch (error) {
+        finish(error);
+      }
+    });
+  }
+  _schedule() {
+    if (this.frame || this.destroyed || this.doc.hidden || !this.visible) return;
+    this.frame = this.win.requestAnimationFrame((now) => {
+      this.frame = 0;
+      if (this.destroyed) return;
+      if (this.returning) {
+        const elapsed = now - this.returning.start;
+        const fraction = clamp(elapsed / this.config.interaction.resetDuration, 0, 1);
+        this.progress = this.returning.from * (1 - fraction);
+        if (fraction === 1) this.returning = null;
+      }
+      this._paint();
+      if (this.returning) this._schedule();
+    });
+  }
+  _paint() {
+    const reference = this.height / this.config.baseHeight;
+    const progress = this.progress * this.config.interaction.strength;
+    for (const layer of this.layers) {
+      const value = layerState(layer, progress, reference);
+      layer.element.style.transform = `translate3d(${value.x.toFixed(3)}px,${value.y.toFixed(3)}px,0) rotate(${value.rotate}deg) scale(${value.scale})`;
+      layer.element.style.opacity = String(value.opacity);
+      layer.element.style.filter = value.blur > 1e-4 ? `blur(${value.blur}px)` : "";
+    }
+    this.root.classList.toggle("lpb--moving", Boolean(this.tracking || this.returning));
+  }
+  _returnHome() {
+    this.tracking = false;
+    if (!this.progress || !this.motionAllowed() || !this.config.interaction.resetDuration) {
+      this._reset();
+      return;
+    }
+    this.returning = { from: this.progress, start: this.win.performance.now() };
+    this._schedule();
+  }
+  _reset() {
+    this.win.cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    this.progress = 0;
+    this.tracking = false;
+    this.returning = null;
+    this._paint();
+  }
+  _syncVideos() {
+    const playing = this.motionAllowed() && !this.userPaused && this.visible && !this.doc.hidden && !this.destroyed;
+    for (const layer of this.layers) {
+      if (layer.type !== "video") continue;
+      if (playing) Promise.resolve(layer.element.play()).catch(() => {
+        if (!this.destroyed) this._emit("error", { layerId: layer.id, message: "Video autoplay unavailable; poster frame remains visible" });
+      });
+      else layer.element.pause();
+    }
+  }
+  pause() {
+    if (this.destroyed) return;
+    this.userPaused = true;
+    this._reset();
+    this._syncVideos();
+  }
+  resume() {
+    if (this.destroyed) return;
+    this.userPaused = false;
+    this._syncVideos();
+  }
+  setProgress(value) {
+    if (this.destroyed || !this.motionAllowed() || this.userPaused) return;
+    this.returning = null;
+    this.progress = clamp(Number(value) || 0, -1, 1);
+    this._schedule();
+  }
+  destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.state = "destroyed";
+    this.win.cancelAnimationFrame(this.frame);
+    this.resizeObserver?.disconnect();
+    this.intersectionObserver?.disconnect();
+    this.cleanups.splice(0).forEach((cleanup) => cleanup());
+    for (const layer of this.layers) if (layer.type === "video") {
+      layer.element.pause();
+      layer.element.removeAttribute("src");
+      layer.element.load();
+    }
+    this.stage.remove();
+    this.taper?.remove();
+    this.root.classList.remove("lpb--moving");
+    if (!this._saved.hadClass) this.root.classList.remove("lpb");
+    this.root.style.height = this._saved.height;
+    this.root.style.backgroundColor = this._saved.background;
+    if (this._saved.state === null) this.root.removeAttribute("data-banner-state");
+    else this.root.setAttribute("data-banner-state", this._saved.state);
+    mounted.delete(this.root);
+  }
+};
+function createBanner(root, config) {
+  const element = typeof root === "string" ? document.querySelector(root) : root;
+  return new ParallaxBanner(element, config);
+}
+async function loadBanner(root, manifestUrl, options = {}) {
+  const element = typeof root === "string" ? document.querySelector(root) : root;
+  if (!element) throw new TypeError("Banner root not found");
+  const url = new URL(manifestUrl, element.ownerDocument.baseURI);
+  if (!["http:", "https:"].includes(url.protocol)) throw new Error("JSON manifests require HTTP(S); use createBanner with an inline config for double-click previews");
+  const response = await fetch(url, { signal: options.signal, credentials: "omit" });
+  if (!response.ok) throw new Error(`Manifest request failed (${response.status})`);
+  const data = await response.json();
+  return createBanner(element, { ...data, ...options, baseUrl: url.href });
+}
