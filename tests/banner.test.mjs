@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
-import {ParallaxBanner} from '../src/banner.js';
+import {ParallaxBanner,loadBanner} from '../src/banner.js';
 
 function fixture({width=1200,top=300,reduced=false,fail='',timeout=false}={}) {
   const dom=new JSDOM('<div id="root"><strong>Host content</strong></div>',{url:'https://example.org/page',pretendToBeVisual:true});
@@ -88,4 +88,15 @@ test('required image failure leaves poster, optional failure reports degraded',a
 test('destroy during loading settles ready without late DOM writes',async()=>{
   const f=fixture({timeout:true}),banner=new ParallaxBanner(f.root,{...f.config,loadTimeout:100});
   banner.destroy();await banner.ready;assert.equal(f.root.querySelectorAll('.lpb__stage').length,0);assert.equal(banner.state,'destroyed');f.close();
+});
+
+test('manifest loader resolves assets relative to the manifest and omits credentials',async()=>{
+  const f=fixture(), originalFetch=globalThis.fetch;
+  let options;
+  globalThis.fetch=async(_url,value)=>{options=value;return new Response(JSON.stringify(f.config));};
+  try {
+    const banner=await loadBanner(f.root,'/campaigns/summer/banner.json');await banner.ready;
+    assert.equal(banner.layers[0].element.src,'https://example.org/campaigns/summer/bg.svg');
+    assert.equal(options.credentials,'omit');banner.destroy();
+  } finally {globalThis.fetch=originalFetch;f.close();}
 });

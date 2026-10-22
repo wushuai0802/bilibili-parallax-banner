@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import sharp from 'sharp';
 import {validateManifest} from '../scripts/validate-assets.mjs';
 
 async function fixture(run) {
+  await mkdir(resolve('tmp'),{recursive:true});
   const dir=await mkdtemp(resolve('tmp/asset-test-'));
   try {await run(dir);} finally {await rm(dir,{recursive:true,force:true});}
 }
