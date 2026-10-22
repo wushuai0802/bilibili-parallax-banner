@@ -1,5 +1,7 @@
 # 新主题图片模板
 
+这是已经准备好两端完整画布时的手工交付模板。新制作推荐使用[源工程模板](../theme-project/README.md)，由theme:build自动导出本目录所表示的结构。
+
 先阅读[Banner图片交付规范](../../docs/IMAGE-SPEC.md)。本目录可以整份复制，作为AI、画师和网站开发者的交付起点。占位图为原创几何SVG，使用仓库MIT许可。
 
 | 目录 | 逻辑画布 | 实际导出 |
@@ -23,6 +25,6 @@ npm run validate:theme
 npm run validate:theme -- /path/to/my-theme/theme.json
 ```
 
-验证器检查两端图片、海报、已登记的主体区域与文字区；它不会自动抠图、补绘背景、识别人脸或安排新主题。`theme.json`是制作验收文件，运行时加载相应desktop/banner.json或mobile/banner.json，网站负责断点选择和实例销毁。
+验证器检查两端图片、海报、已登记的主体区域与文字区；它不自动抠图、补景或识别人脸。运行时使用loadTheme(theme.json)，统一管理两端选择、动效和销毁；底层loadBanner只管理单端清单。
 
-把[AI-BRIEF.md](AI-BRIEF.md)、规范和参考图片一起交给AI，可以直接作为制作任务说明。复制模板后无需运行芙莉莲专用生成脚本。
+把[源工程AI任务书](../theme-project/AI-BRIEF.md)、规范和参考图片交给AI。需要手工维护两端现成图时继续使用此模板；所有示例已改用通用工具，没有专用生成脚本。

@@ -1,0 +1,308 @@
+{
+  "$schema": "schema/theme.schema.json",
+  "version": 1,
+  "name": "studio",
+  "artwork": {
+    "author": "Bilibili Parallax Banner contributors",
+    "source": "Original editable geometric source layers",
+    "license": "MIT"
+  },
+  "breakpoint": 767,
+  "minimumMargin": 4,
+  "motion": {
+    "period": 8000,
+    "resumeDelay": 1800,
+    "fine": {
+      "mode": "pointer",
+      "amplitude": 0.85,
+      "fps": 60
+    },
+    "coarse": {
+      "mode": "auto",
+      "amplitude": 0.55,
+      "fps": 30
+    }
+  },
+  "preview": {
+    "brand": "FIELD NOTES",
+    "title": "山野来信",
+    "subtitle": "同一套源图，两种自然构图。",
+    "eyebrow": "SOMEWHERE BETWEEN LAYERS"
+  },
+  "variants": {
+    "desktop": {
+      "manifest": "desktop/banner-93f761d99423.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 1920,
+        "baseHeight": 216,
+        "pixelRatio": 2,
+        "description": "山野来信",
+        "poster": "poster-61d762768891.webp",
+        "posterPosition": "50% 50%",
+        "background": "#173d42",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "min": 190,
+          "max": 280,
+          "ratio": 0.125,
+          "mobile": 180,
+          "breakpoint": 0
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 1,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "background",
+            "src": "background-e401668cf0f1.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              6,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "subject",
+            "src": "subject-d13b354486eb.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              24,
+              0
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "foreground",
+            "src": "foreground-e929caa0e881.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              64,
+              6
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        768,
+        1024,
+        1280,
+        1440,
+        1920,
+        2560,
+        3440,
+        5120
+      ],
+      "protectedRegions": [
+        {
+          "id": "subject-head",
+          "layerId": "subject",
+          "rect": [
+            1269.8341121495328,
+            13,
+            148.83177570093457,
+            138.1675392670157
+          ]
+        }
+      ],
+      "textZones": [
+        {
+          "id": "site-title",
+          "rect": [
+            0.04,
+            0.45,
+            0.3,
+            0.5
+          ]
+        }
+      ]
+    },
+    "mobile": {
+      "manifest": "mobile/banner-4c63fa6bf754.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 375,
+        "baseHeight": 200,
+        "pixelRatio": 3,
+        "description": "山野来信",
+        "poster": "poster-3fe16aafbcad.webp",
+        "posterPosition": "50% 50%",
+        "background": "#173d42",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "min": 120,
+          "max": 280,
+          "ratio": 0.5333333333333333,
+          "mobile": 180,
+          "breakpoint": 0
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 0.65,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "background",
+            "src": "background-b0509640f329.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              2,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "subject",
+            "src": "subject-3f114f197cbf.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              8,
+              0
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "foreground",
+            "src": "foreground-b521adec0bab.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              20,
+              2
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        280,
+        320,
+        360,
+        375,
+        390,
+        412,
+        430,
+        600,
+        767
+      ],
+      "protectedRegions": [
+        {
+          "id": "subject-head",
+          "layerId": "subject",
+          "rect": [
+            145.14330218068537,
+            84,
+            85.04672897196262,
+            78.95287958115183
+          ]
+        }
+      ],
+      "textZones": [
+        {
+          "id": "site-title",
+          "rect": [
+            0.048,
+            0.05,
+            0.6,
+            0.32
+          ]
+        }
+      ]
+    }
+  },
+  "revision": "caebbe129f00"
+}

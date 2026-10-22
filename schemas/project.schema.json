@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Layered Banner source project v1",
+  "type": "object",
+  "required": ["version", "name", "artwork", "layers"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"type":"string"},
+    "version": {"const":1},
+    "name": {"type":"string","pattern":"^[a-z][a-z0-9-]{0,63}$"},
+    "artwork": {"type":"object","required":["author","source","license"],"properties":{"author":{"type":"string","minLength":1},"source":{"type":"string","minLength":1},"license":{"type":"string","minLength":1}}},
+    "background": {"type":"string"},
+    "breakpoint": {"type":"integer","minimum":1,"maximum":9999},
+    "minimumMargin": {"type":"number","minimum":4,"maximum":1000},
+    "motion": {"$ref":"theme.schema.json#/$defs/motion"},
+    "preview": {"$ref":"theme.schema.json#/$defs/preview"},
+    "layers": {"type":"array","minItems":1,"maxItems":32,"items":{"$ref":"#/$defs/layer"}},
+    "variants": {"type":"object","additionalProperties":false,"properties":{"desktop":{"$ref":"#/$defs/variant"},"mobile":{"$ref":"#/$defs/variant"}}}
+  },
+  "$defs": {
+    "rect": {"type":"array","minItems":4,"maxItems":4,"items":{"type":"number"}},
+    "layout": {"type":"object","additionalProperties":false,"properties":{"fit":{"enum":["cover","contain","fill"]},"trim":{"type":"boolean"},"anchor":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number","minimum":0,"maximum":1}},"box":{"$ref":"#/$defs/rect"},"crop":{"$ref":"#/$defs/rect"}}},
+    "regions": {"type":"array","items":{"type":"object","required":["id","rect"],"properties":{"id":{"type":"string","minLength":1},"rect":{"$ref":"#/$defs/rect"}}}},
+    "runtime": {"type":"object","additionalProperties":false,"properties":{"name":{"type":"string"},"fit":{"enum":["canvas","contain"]},"position":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number","minimum":0,"maximum":1}},"offset":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}},"initial":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number"}},"scale":{"type":"number","minimum":0.01,"maximum":10},"opacity":{"type":"number","minimum":0,"maximum":1},"rotate":{"type":"number"},"blur":{"type":"number","minimum":0,"maximum":100},"required":{"type":"boolean"}}},
+    "layer": {"type":"object","required":["id","role","src"],"additionalProperties":false,"properties":{"id":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,63}$"},"role":{"enum":["background","subject","foreground","detail"]},"src":{"type":"string","minLength":1},"regions":{"$ref":"#/$defs/regions"},"layout":{"$ref":"#/$defs/layout"},"runtime":{"$ref":"#/$defs/runtime"}},"if":{"properties":{"role":{"const":"subject"}}},"then":{"required":["regions"],"properties":{"regions":{"minItems":1}}}},
+    "override": {"type":"object","additionalProperties":false,"properties":{"src":{"type":"string"},"regions":{"$ref":"#/$defs/regions"},"layout":{"$ref":"#/$defs/layout"},"runtime":{"$ref":"#/$defs/runtime"}}},
+    "variant": {"type":"object","additionalProperties":false,"properties":{"canvas":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"number","exclusiveMinimum":0}},"pixelRatio":{"type":"number","minimum":0.1,"maximum":8},"height":{"type":"object"},"interaction":{"type":"object"},"description":{"type":"string"},"viewports":{"type":"array","minItems":1,"items":{"type":"integer","minimum":1}},"textZones":{"type":"array","items":{"$ref":"theme.schema.json#/$defs/textZone"}},"layers":{"type":"object","additionalProperties":{"$ref":"#/$defs/override"}}}}
+  }
+}

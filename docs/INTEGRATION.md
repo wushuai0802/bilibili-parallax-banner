@@ -1,106 +1,93 @@
-# 给网站开发者的对接指南
+# 网站开发接入指南 / v1.3
 
-## 1. 职责与交付边界
+## 1. 收到什么
 
-本库只管理一个容器内的装饰横幅。你的网站继续管理导航、登录、搜索、路由、分析统计和业务状态。
-组件添加的节点使用 `lpb` 前缀，只在横幅内部驱动鼠标视差；触摸启用时的全局触点监听仅用于双指取消和横幅外抬手。原有容器子节点保留，`destroy()` 仅移除组件自己创建的节点。
+美术交付 `theme.zip`，包含 `theme.json`、双端哈希素材、不可变清单、预览、报告和最小接入例。网站方不用重复处理人物裁切、两端坐标换算或编写一套自动演示逻辑。
 
-网站方需要提供：容器、CSS/JS地址、两端素材清单地址、切换断点和文字预留区域。美术方按[独立图片规范](IMAGE-SPEC.md)交付两端分层、合成海报及theme.json；可从[通用模板](../templates/theme/README.md)复制。
+网站继续管理导航、标题、按钮、点击跳转和其他业务。组件只添加自己的画面节点，销毁时保留宿主内容。[制作流程](WORKFLOW.md)与[图片规范](IMAGE-SPEC.md)面向AI/美工。
 
-## 2. 普通网页 / CDN
+## 2. 普通网页与ESM
 
-参考 README 的固定标签 CDN。`banner.min.js` 暴露 `window.LayeredBanner`；载入 CSS 后调用 `createBanner(element, config)` 或 `loadBanner(element, manifestUrl)`。
-不要同时引入多个版本；每个容器只挂载一个实例。
-资源 URL 由开发者配置。跨域 JSON 与图片应正确配置 CORS；生产环境建议使用自己控制的素材域名。
-
-离线双击模式必须使用对象配置或生成的 `banner.config.js`。JSON 清单通过 HTTP(S) 获取；浏览器不支持 `fetch(file://...)`，不要求关闭浏览器安全设置。
-
-## 3. JSON 清单（推荐）
+加载dist/banner.css和dist/banner.min.js：
 
 ```js
-import {loadBanner} from './dist/banner.js';
-const banner = await loadBanner(document.querySelector('#banner'), '/assets/banner/banner.json');
-await banner.ready;
+const banner = await LayeredBanner.loadTheme('#banner', '/themes/summer/theme.json');
+await banner.setTheme('/themes/winter/theme.json');
+banner.setMode('still');
+banner.setMode('default');
+banner.destroy();
 ```
 
-相对图片路径总是相对清单 URL，而不是相对当前页面路由。一次挂载不会启动轮询；切换活动主题时销毁旧实例再加载新清单。
+ESM使用 `import {loadTheme} from './dist/banner.js'`，或安装固定Git标签后从包导入。
 
-## 4. React
+双端切换按**容器实际宽度**进行，适用于全宽横幅和窄容器。只实例化当前端图片；默认精细指针使用鼠标视差、触屏自动演示并支持横向接管。更换主题、切换宽度和销毁中的旧请求会取消，不会覆盖新画面。
+
+`theme.json`相对路径以它自己的URL解析。组件采用omit credentials获取配置；跨域部署需配置CORS。固定组件版本，主题索引建议no-cache，哈希资源可用长期immutable缓存。
+
+## 3. React
 
 ```jsx
 import {useEffect, useRef} from 'react';
-import {loadBanner} from 'bilibili-parallax-banner';
+import {loadTheme} from 'bilibili-parallax-banner';
 import 'bilibili-parallax-banner/style.css';
 
-export function SiteBanner({manifestUrl}) {
+export function SiteBanner({themeUrl}) {
   const root = useRef(null);
   useEffect(() => {
-    let instance;
-    let disposed = false;
     const abort = new AbortController();
-    loadBanner(root.current, manifestUrl, {signal: abort.signal})
-      .then(value => {
-        if (disposed) value.destroy();
-        else instance = value;
-      })
-      .catch(error => {if (!disposed) console.error('Banner configuration unavailable', error);});
-    return () => {disposed = true; abort.abort(); instance?.destroy();};
-  }, [manifestUrl]);
+    let controller;
+    loadTheme(root.current, themeUrl, {signal: abort.signal})
+      .then(value => { controller = value; })
+      .catch(error => { if (error.name !== 'AbortError') console.error(error); });
+    return () => { abort.abort(); controller?.destroy(); };
+  }, [themeUrl]);
   return <div ref={root} />;
 }
 ```
 
-SSR 场景只在客户端 `useEffect` 中挂载。初始容器请由宿主预留高度和背景海报，避免首屏等待 JS 时闪空。
+只在客户端Effect中创建组件。SSR首屏按生成包中的 `embed.html` 预留高度和海报，避免JS到达前闪空或页面跳动。文字仍使用真实HTML，并放在主题约定的文字留白区。
 
-## 5. Vue 3
+## 4. Vue 3
 
 ```vue
 <script setup>
-import {onMounted, onBeforeUnmount, ref} from 'vue';
-import {loadBanner} from 'bilibili-parallax-banner';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
+import {loadTheme} from 'bilibili-parallax-banner';
 import 'bilibili-parallax-banner/style.css';
 const root = ref(null);
 const abort = new AbortController();
-let instance;
-let disposed = false;
+let controller;
 onMounted(async () => {
-  try {
-    const value = await loadBanner(root.value, '/assets/banner/banner.json', {signal: abort.signal});
-    if (disposed) value.destroy(); else instance = value;
-  } catch (error) {if (!disposed) console.error('Banner unavailable', error);}
+  try { controller = await loadTheme(root.value, '/themes/summer/theme.json', {signal: abort.signal}); }
+  catch (error) { if (error.name !== 'AbortError') console.error(error); }
 });
-onBeforeUnmount(() => {disposed = true; abort.abort(); instance?.destroy();});
+onBeforeUnmount(() => { abort.abort(); controller?.destroy(); });
 </script>
 <template><div ref="root" /></template>
 ```
 
-## 6. 叠放自己的网站内容
+Vue路由参数更新时调用现有控制器的setTheme，或取消旧请求、销毁后重新加载。
 
-```html
-<div id="banner" style="position:relative">
-  <a class="site-logo" href="/">我的网站</a>
-</div>
-<style>
-.site-logo { position:absolute; z-index:2; left:32px; bottom:20px; }
-</style>
+## 5. 状态与失败
+
+`ready`不等同所有图片成功。检查 `controller.state`：ready为全部成功，degraded为可选图层失败，error为重要图层失败。重要图层失败时显示本端合成海报并停止自动循环。
+
+JSON请求失败会拒绝 `loadTheme`；宿主预置的CSS海报仍可作为首屏兜底。`setTheme`失败时报告错误并保留可用的上一画面。取消和快速替换返回AbortError，可忽略预期取消。
+
+```js
+root.addEventListener('theme:state', event => {
+  console.log(event.detail.state, event.detail.variant, event.detail.mode);
+});
 ```
 
-组件不会重建或删除 `.site-logo`。导航不是图片的一部分，应保留真实链接、键盘焦点和响应式布局。
-默认顶部遮罩为 100px 黑色至透明渐变；若导航已有遮罩，可设置 `taper:false`。
+## 6. 离线与CSP
+
+`index.html`通过经典配置包装，可双击查看；`artifacts/offline.html`内嵌全部资源，可单独传到手机。`embed.html`演示真实网站的HTTP(S)主题加载，不使用fetch(file://)。
+
+严格CSP的网站自托管组件，启动JS和首屏CSS按自己的nonce或外部文件策略处理；预览页内联资源是便携展示用途。组件本身不使用eval或第三方跟踪。
 
 ## 7. 上线验收
 
-1. 320、390、768、1280、1920、3440px 宽度无横向页面溢出；分别核对头部与标题安全区。独立人物使用 `fit:'contain',position:[0.5,1]`；手机动态应使用独立构图图层。
-2. 鼠标最左/最右，背景无灰边；横幅位于页面中部时仍可交互。
-3. React Strict Mode / Vue 路由切换后没有重复图层或遗留事件。
-4. 断网、必要图层 404、可选图层 404 分别表现为静态海报或降级，状态可观测。
-5. 系统减少动态效果生效，手机可正常滚动，视频不在后台持续播放。启用 `interaction.touch:'drag'` 时还需核对横向拖动、抬手归位与多触点取消。
-6. `npm run validate -- /path/to/banner.json` 通过后再上传；本地校验不代表生产 CDN 已正确部署。
+先运行 `theme:check`，再核对真实标题、按钮、字体、明暗对比、前景遮脸和抠图。确认移动端横向交互、纵向滚动、减少动态、后台、快速路由切换和资源失败。源图矩形检查不能替代浏览器与实体设备验收。
 
-新主题在制作仓库执行 `npm run validate:theme -- /path/to/theme.json`，同时验证两端图片、关键区域与约定的文字区域。theme.json用于维护验收，组件仍加载单端banner.json；网站负责在断点变化时销毁旧实例、选择另一端清单。自动校验不替代实际网页的字体、导航和按钮布局检查。
-
-## 8. 版本、CDN 与供应链
-
-使用 `@v1.2.0` 这类固定标签，避免直接跟随 `main`。若站点不允许第三方 CDN，可自托管 `dist/banner.min.js` 和 `dist/banner.css`；组件无需联网服务。
-网站开发者不需要 Node.js、图像处理工具或构建过程，直接使用已构建文件即可。开发维护仓库时才需要 Node.js。
-如启用严格 CSP，把 JS/CSS 及图片域名加入现有策略；本库不使用 `eval`、注入 HTML 字符串或第三方跟踪。
+已有单端清单可继续使用 `loadBanner`，已经持有对象可用 `createBanner`；这些底层接口保留兼容，双端和动效策略优先使用新的统一主题控制器。

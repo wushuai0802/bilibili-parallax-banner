@@ -1,7 +1,10 @@
 import {readFile,realpath} from 'node:fs/promises';
 import {dirname,resolve,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {normalizeConfig,layoutScale,layerState,clamp} from '../src/model.js';
+import {isDeepStrictEqual} from 'node:util';
+import {normalizeConfig} from '../src/model.js';
+import {bannerHeight,protectedBounds} from '../src/layout.js';
+import {normalizeTheme} from '../src/theme-model.js';
 import {validateManifest} from './validate-assets.mjs';
 
 const samples=[-1,-.55,0,.55,1];
@@ -30,29 +33,13 @@ async function localManifest(directory,path) {
   return actual;
 }
 
-function regionBounds(config,layer,rect,width,height,progress) {
-  const scale=layoutScale(config,layer,width,height);
-  const factor=scale*layer.scale,w=config.baseWidth*factor,h=config.baseHeight*factor;
-  const position=layer.fit==='contain'?layer.position:[.5,.5];
-  const centerX=(width-w)*position[0]+w/2,centerY=(height-h)*position[1]+h/2;
-  const state=layerState(layer,progress*config.interaction.strength,layer.fit==='contain'?scale:height/config.baseHeight);
-  const angle=state.rotate*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle);
-  const [x,y,rw,rh]=rect;
-  const points=[[x,y],[x+rw,y],[x,y+rh],[x+rw,y+rh]].map(([px,py])=>{
-    const dx=(px-config.baseWidth/2)*factor*state.scale,dy=(py-config.baseHeight/2)*factor*state.scale;
-    return [centerX+dx*cos-dy*sin+state.x,centerY+dx*sin+dy*cos+state.y];
-  });
-  if(!points.flat().every(finite))throw new Error('Subject transforms must be finite');
-  return {left:Math.min(...points.map(point=>point[0])),right:Math.max(...points.map(point=>point[0])),
-    top:Math.min(...points.map(point=>point[1])),bottom:Math.max(...points.map(point=>point[1]))};
-}
-
 export async function validateTheme(themePath) {
   const file=resolve(themePath),directory=await realpath(dirname(file));
   const theme=JSON.parse(await readFile(file,'utf8'));
   const errors=[],warnings=[],rows=[];
   let bytes=0,checks=0;
   if(!theme||theme.version!==1)throw new TypeError('Unsupported theme contract version');
+  try {normalizeTheme(theme);}catch(error){errors.push(error.message);}
   if(typeof theme.name!=='string'||!theme.name.trim())errors.push('Theme requires a name');
   for(const key of ['author','source','license'])if(typeof theme.artwork?.[key]!=='string'||!theme.artwork[key].trim())errors.push(`artwork.${key} must be recorded`);
   const breakpoint=theme.breakpoint??767,margin=theme.minimumMargin??4;
@@ -68,6 +55,7 @@ export async function validateTheme(themePath) {
       if(!Array.isArray(variant.viewports)||!variant.viewports.length||variant.viewports.some(width=>!Number.isInteger(width)||width<1||width>10000||(name==='mobile'?width>breakpoint:width<=breakpoint)))throw new TypeError('viewports must be positive integers on the correct side of breakpoint');
       const manifest=await localManifest(directory,variant.manifest);
       const config=normalizeConfig(JSON.parse(await readFile(manifest,'utf8')));
+      if(variant.config&&!isDeepStrictEqual(normalizeConfig(variant.config),config))errors.push(`${name}: Inline config differs from its immutable manifest`);
       if(config.mode!=='aligned')throw new TypeError('Paired image themes require aligned manifests');
       if(!config.poster)throw new TypeError('Each variant requires a matching poster');
       const protectedRegions=regions(variant.protectedRegions,'protectedRegions',entry=>{
@@ -84,11 +72,11 @@ export async function validateTheme(themePath) {
       const poster=assets.rows.findLast(row=>row.id==='poster');
       if(poster?.dimensions!==expected||poster?.transparent!==false)errors.push(`${name}: Poster must be opaque and match ${expected}`);
       for(const width of new Set(variant.viewports)) {
-        const rule=config.height,height=width<=rule.breakpoint?rule.mobile:clamp(width*rule.ratio,rule.min,rule.max);
+        const height=bannerHeight(config,width);
         for(const progress of samples)for(const region of protectedRegions) {
           checks++;
           const layer=config.layers.find(item=>item.id===region.layerId);
-          const bounds=regionBounds(config,layer,region.rect,width,height,progress);
+          const bounds=protectedBounds(config,layer,region.rect,width,height,progress);
           const label=`${name}: ${width}px/progress ${progress}/${region.id}`;
           if(bounds.left<margin-1e-7||bounds.right>width-margin+1e-7||bounds.top<margin-1e-7||bounds.bottom>height-margin+1e-7)errors.push(`${label} leaves the safe viewport`);
           for(const zone of textZones) {

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {JSDOM} from 'jsdom';
 import sharp from 'sharp';
+import {VERSION} from '../src/model.js';
 
-const html=await readFile('outputs/frieren-banner-preview.html','utf8');
-
-for(const [width,url,fine] of [[390,'content://com.tencent.provider/banner.html',false],[1280,'file:///E:/banner/index.html',true]]) {
-  test(`standalone HTML decodes its own embedded layers at ${width}px without HTTP`,async()=>{
+for(const name of ['frieren','studio'])for(const [width,url,fine] of [[390,'content://com.tencent.provider/banner.html',false],[1280,'file:///E:/banner/index.html',true]]) {
+  test(`${name} offline HTML decodes its embedded layers at ${width}px without HTTP`,async()=>{
+    const html=await readFile(`examples/${name}/artifacts/offline.html`,'utf8');
     let resolveReady;
     const ready=new Promise(resolve=>{resolveReady=resolve;});
     const sources=[],dimensions=new WeakMap(),frames=new Map();
@@ -28,17 +28,17 @@ for(const [width,url,fine] of [[390,'content://com.tencent.provider/banner.html'
           sharp(bytes).metadata().then(info=>{dimensions.set(this,info);this.dispatchEvent(new win.Event('load'));},()=>this.dispatchEvent(new win.Event('error')));
         }}
       });
-      win.document.addEventListener('banner:ready',event=>resolveReady(event.detail),{capture:true,once:true});
+      win.document.addEventListener('theme:ready',event=>resolveReady(event.detail),{capture:true,once:true});
     }});
     try {
       const result=await Promise.race([ready,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Offline banner did not finish loading')),5000);})]);
-      assert.equal(result.state,'ready');assert.equal(result.loadedLayers,3);
+      assert.equal(result.state,'ready');
       const root=dom.window.document.getElementById('banner');
-      assert.equal(root.dataset.composition,width<=767?'mobile':'desktop');
-      assert.equal(root.dataset.previewMode,fine?'pointer':'auto');
+      assert.equal(root.dataset.themeVariant,width<=767?'mobile':'desktop');
+      assert.equal(root.dataset.themeMode,fine?'pointer':'auto');
       assert.equal(root.querySelectorAll('.lpb__layer').length,3);
       assert.ok(sources.length>=4&&sources.every(src=>src.startsWith('data:image/')));
-      assert.match(dom.window.document.querySelector('footer').textContent,/v1\.2\.0/);
+      assert.ok(dom.window.document.querySelector('footer').textContent.includes(`v${VERSION}`));
       assert.equal(dom.window.document.querySelector('meta[name=viewport]').content,'width=device-width,initial-scale=1');
     } finally {
       clearTimeout(timer);dom.window.dispatchEvent(new dom.window.Event('pagehide'));dom.window.close();

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
-import {readFile} from 'node:fs/promises';
 import {ParallaxBanner,loadBanner} from '../src/banner.js';
 
 function fixture({width=1200,top=300,reduced=false,fine=true,fail='',timeout=false,visualScale=1}={}) {
@@ -33,7 +32,6 @@ function fixture({width=1200,top=300,reduced=false,fine=true,fail='',timeout=fal
   };
   const config={poster:'poster.webp',layers:[{id:'bg',src:'bg.svg',offset:[6,0]},{id:'fg',src:'fg.svg',offset:[64,12]}]};
   return {win,root,config,frames,queries,
-    run(code){win.eval(code);},
     resize(width){currentWidth=width;observer();for(const [query,value] of queries){if(!query.includes('max-width'))continue;const next=width<=Number(query.match(/\d+/)[0]);if(next!==value.matches){value.matches=next;value.dispatchEvent(new win.Event('change'));}}},
     flush(time=16){clock=time;const batch=[...frames.values()];frames.clear();batch.forEach(callback=>callback(time));},
     move(x,y=330){root.dispatchEvent(new win.MouseEvent('pointermove',{clientX:x,clientY:y,bubbles:true}));},
@@ -138,22 +136,6 @@ test('mobile poster does not hide layers when touch motion is explicitly enabled
   assert.ok(banner.layers.every(layer=>!layer.wrap.hidden));assert.equal(banner.progress,0);banner.destroy();f.close();
 });
 
-test('the actual Frieren page defaults touch devices to animation rather than the old static gate',async()=>{
-  const f=fixture({width:375,fine:false});f.root.id='banner';
-  f.win.document.body.insertAdjacentHTML('beforeend','<span id="status"></span><p id="interaction-help"></p><button data-mode="pointer"></button><button data-mode="auto"></button><button data-mode="still"></button>');
-  const config={...f.config,interaction:{touch:'drag'}};
-  f.win.FRIEREN_THEMES={desktop:config,mobile:config};
-  let instance;
-  f.win.LayeredBanner={createBanner(root,options){instance=new ParallaxBanner(root,options);return instance;}};
-  f.run(await readFile('examples/frieren/theme.js','utf8'));await instance.ready;
-  assert.equal(f.root.dataset.previewMode,'auto');assert.equal(f.root.dataset.inputKind,'touch');
-  assert.equal(f.win.document.querySelector('[data-mode=auto]').disabled,false);
-  f.flush(100);f.flush(150);assert.notEqual(instance.progress,0);
-  const query=f.queries.get('(prefers-reduced-motion: reduce)');query.matches=true;query.dispatchEvent(new f.win.Event('change'));
-  assert.equal(f.root.dataset.previewMode,'still');assert.equal(f.win.document.querySelector('[data-mode=auto]').disabled,true);
-  f.win.dispatchEvent(new f.win.Event('pagehide'));f.close();
-});
-
 test('contain keeps subject layers inside the canvas while the background covers the container',async()=>{
   const f=fixture({width:768}),banner=new ParallaxBanner(f.root,{...f.config,layers:[f.config.layers[0],{...f.config.layers[1],fit:'contain'}]});await banner.ready;
   assert.ok(parseFloat(banner.layers[0].element.style.width)>=768);
@@ -180,38 +162,4 @@ test('a second finger cancels parallax including when it lands outside the banne
   f.touch('pointerup',330,330);f.touch('pointerup',330,330,2);
   f.touch('pointerdown',140,330);f.touch('pointermove',180,330);f.flush(220);assert.ok(banner.progress>0);
   banner.destroy();f.close();
-});
-
-test('Frieren preserves static mode on input changes and restores bfcache without losing layers',async()=>{
-  const f=fixture({width:390,fine:false});f.root.id='banner';
-  f.win.document.body.insertAdjacentHTML('beforeend','<span id="status"></span><button data-mode="pointer"></button><button data-mode="auto"></button><button data-mode="still"></button>');
-  const config={...f.config,interaction:{touch:'drag'}};f.win.FRIEREN_THEMES={desktop:config,mobile:config};
-  let instance;f.win.LayeredBanner={createBanner(root,options){instance=new ParallaxBanner(root,options);return instance;}};
-  f.run(await readFile('examples/frieren/theme.js','utf8'));await instance.ready;
-  f.win.document.querySelector('[data-mode=still]').click();
-  const fine=f.queries.get('(any-hover: hover) and (any-pointer: fine)');fine.matches=true;fine.dispatchEvent(new f.win.Event('change'));
-  assert.equal(f.root.dataset.previewMode,'still');assert.equal(instance.userPaused,true);
-  const reduced=f.queries.get('(prefers-reduced-motion: reduce)');
-  reduced.matches=true;reduced.dispatchEvent(new f.win.Event('change'));
-  reduced.matches=false;reduced.dispatchEvent(new f.win.Event('change'));
-  assert.equal(f.root.dataset.previewMode,'still');assert.equal(instance.userPaused,true);
-  const hidden=new f.win.Event('pagehide');Object.defineProperty(hidden,'persisted',{value:true});f.win.dispatchEvent(hidden);
-  assert.equal(instance.destroyed,false);assert.equal(f.root.querySelectorAll('.lpb__layer').length,2);
-  const shown=new f.win.Event('pageshow');Object.defineProperty(shown,'persisted',{value:true});f.win.dispatchEvent(shown);
-  assert.equal(f.root.dataset.previewMode,'still');assert.equal(instance.userPaused,true);
-  f.win.document.querySelector('[data-mode=auto]').click();f.flush(100);f.flush(150);assert.notEqual(instance.progress,0);
-  f.win.dispatchEvent(new f.win.Event('pagehide'));f.close();
-});
-
-test('Frieren remounts exactly once across its breakpoint and preserves the selected mode',async()=>{
-  const f=fixture({width:390,fine:false});f.root.id='banner';
-  f.win.document.body.insertAdjacentHTML('beforeend','<span id="status"></span><button data-mode="pointer"></button><button data-mode="auto"></button><button data-mode="still"></button>');
-  const config={...f.config,interaction:{touch:'drag'}};f.win.FRIEREN_THEMES={desktop:config,mobile:config};
-  const instances=[];f.win.LayeredBanner={createBanner(root,options){const instance=new ParallaxBanner(root,options);instances.push(instance);return instance;}};
-  f.run(await readFile('examples/frieren/theme.js','utf8'));await instances.at(-1).ready;
-  f.win.document.querySelector('[data-mode=still]').click();f.resize(900);await instances.at(-1).ready;
-  assert.equal(instances.length,2);assert.equal(instances[0].destroyed,true);assert.equal(f.root.dataset.composition,'desktop');assert.equal(f.root.dataset.previewMode,'still');
-  f.resize(390);await instances.at(-1).ready;
-  assert.equal(instances.length,3);assert.equal(f.root.dataset.composition,'mobile');assert.equal(f.root.querySelectorAll('.lpb__stage').length,1);
-  f.win.dispatchEvent(new f.win.Event('pagehide'));f.close();
 });

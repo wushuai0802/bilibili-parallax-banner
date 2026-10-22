@@ -1,4 +1,4 @@
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 function finite(value, fallback, name, low = -10000, high = 10000) {

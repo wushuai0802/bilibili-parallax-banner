@@ -27,10 +27,11 @@ export async function validateManifest(manifestPath) {
       const info = await stat(actual);
       if (!info.isFile()) throw new Error('Asset is not a regular file');
       if (!used.has(actual)) {bytes += info.size; used.add(actual);}
-      const image = sharp(actual, {limitInputPixels: 40_000_000});
+      const source = await readFile(actual);
+      const image = sharp(source, {limitInputPixels: 40_000_000});
       const metadata = await image.metadata();
       if (metadata.format === 'svg' && config.mode === 'aligned') {
-        const svg = (await readFile(actual, 'utf8')).match(/<svg\b[^>]*>/i)?.[0] ?? '';
+        const svg = source.toString('utf8').match(/<svg\b[^>]*>/i)?.[0] ?? '';
         if (!/\swidth\s*=\s*["']\d+(?:\.\d+)?(?:px)?["']/i.test(svg) || !/\sheight\s*=\s*["']\d+(?:\.\d+)?(?:px)?["']/i.test(svg)) {
           problems.push('SVG must declare absolute width and height; viewBox alone has browser-dependent intrinsic dimensions');
         }

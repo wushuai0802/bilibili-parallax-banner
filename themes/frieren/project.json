@@ -1,0 +1,36 @@
+{
+  "$schema": "../../schemas/project.schema.json",
+  "version": 1,
+  "name": "frieren",
+  "artwork": {
+    "author": "Non-official AI recreation",
+    "source": "https://frieren-anime.jp/news/4335/",
+    "license": "Character and reference-art rights belong to their respective owners; excluded from the component MIT license"
+  },
+  "background": "#08283b",
+  "preview": {"brand":"FRIEREN","title":"葬送的芙莉莲","subtitle":"水晶深处，旅途仍在继续。","eyebrow":"BEYOND JOURNEY'S END"},
+  "layers": [
+    {"id":"cavern","role":"background","src":"source/desktop/background.webp","layout":{"fit":"fill","trim":false},"runtime":{"name":"远景 · 水晶洞窟","offset":[6,0]}},
+    {"id":"party","role":"subject","src":"source/desktop/subject.webp","layout":{"fit":"fill","trim":false,"box":[0,0,1,1]},"runtime":{"name":"主体 · 旅途中的三人","offset":[38,2]},"regions":[
+      {"id":"frieren-head","rect":[2180,48,230,195]},
+      {"id":"fern-head","rect":[2588,66,210,192]},
+      {"id":"stark-head","rect":[2918,125,230,225]}
+    ]},
+    {"id":"crystals","role":"foreground","src":"source/desktop/foreground.webp","layout":{"fit":"fill","trim":false},"runtime":{"name":"前景 · 水晶","offset":[86,9]}}
+  ],
+  "variants": {
+    "desktop": {"viewports":[768,820,1024,1280,1366,1440,1920,2560,3440,3840,5120]},
+    "mobile": {
+      "viewports":[280,320,360,375,390,412,430,600,640,767],
+      "layers": {
+        "cavern":{"src":"source/mobile/background.webp","runtime":{"offset":[2,0]}},
+        "party":{"src":"source/mobile/subject.webp","runtime":{"offset":[12,0]},"regions":[
+          {"id":"frieren-head","rect":[346.4,323.56,165.6,140.4]},
+          {"id":"fern-head","rect":[640.16,336.52,151.2,138.24]},
+          {"id":"stark-head","rect":[877.76,379,165.6,162]}
+        ]},
+        "crystals":{"src":"source/mobile/foreground.webp","runtime":{"offset":[20,2]}}
+      }
+    }
+  }
+}

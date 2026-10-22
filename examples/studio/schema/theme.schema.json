@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Layered Banner runtime theme v1",
+  "type": "object",
+  "required": ["version", "name", "variants"],
+  "properties": {
+    "$schema": {"type":"string"},
+    "version": {"const":1},
+    "name": {"type":"string","minLength":1},
+    "revision": {"type":"string"},
+    "artwork": {"type":"object"},
+    "breakpoint": {"type":"integer","minimum":1,"maximum":9999},
+    "minimumMargin": {"type":"number","minimum":4,"maximum":1000},
+    "motion": {"$ref":"#/$defs/motion"},
+    "preview": {"$ref":"#/$defs/preview"},
+    "variants": {"type":"object","required":["desktop","mobile"],"additionalProperties":false,"properties":{"desktop":{"$ref":"#/$defs/variant"},"mobile":{"$ref":"#/$defs/variant"}}}
+  },
+  "$defs": {
+    "profile": {"type":"object","additionalProperties":false,"properties":{"mode":{"enum":["pointer","auto","still"]},"amplitude":{"type":"number","minimum":0,"maximum":1},"fps":{"type":"number","minimum":1,"maximum":60}}},
+    "motion": {"type":"object","additionalProperties":false,"properties":{"period":{"type":"number","minimum":1000,"maximum":120000},"resumeDelay":{"type":"number","minimum":0,"maximum":10000},"fine":{"$ref":"#/$defs/profile"},"coarse":{"allOf":[{"$ref":"#/$defs/profile"},{"properties":{"fps":{"maximum":30}}}]}}},
+    "preview": {"type":"object","additionalProperties":false,"properties":{"brand":{"type":"string"},"title":{"type":"string"},"subtitle":{"type":"string"},"eyebrow":{"type":"string"},"proofWidths":{"type":"array","minItems":1,"items":{"type":"integer","minimum":1,"maximum":10000}}}},
+    "textZone": {"type":"object","required":["id","rect"],"properties":{"id":{"type":"string","minLength":1},"rect":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"number","minimum":0,"maximum":1}}}},
+    "region": {"type":"object","required":["id","layerId","rect"],"properties":{"id":{"type":"string","minLength":1},"layerId":{"type":"string","minLength":1},"rect":{"type":"array","minItems":4,"maxItems":4,"items":{"type":"number"}}}},
+    "variant": {"type":"object","anyOf":[{"required":["manifest"]},{"required":["config"]}],"properties":{"manifest":{"type":"string","minLength":1},"config":{"type":"object","required":["layers"],"properties":{"layers":{"type":"array","minItems":1,"maxItems":32}}},"viewports":{"type":"array","minItems":1,"items":{"type":"integer","minimum":1}},"protectedRegions":{"type":"array","items":{"$ref":"#/$defs/region"}},"textZones":{"type":"array","items":{"$ref":"#/$defs/textZone"}}}}
+  }
+}

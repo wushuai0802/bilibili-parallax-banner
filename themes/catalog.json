@@ -1,0 +1,11 @@
+{
+  "projects": [
+    {
+      "project": "themes/frieren/project.json",
+      "output": "examples/frieren",
+      "gif": true,
+      "publish": {"offline":"outputs/frieren-banner-preview.html","gif":"docs/images/frieren-parallax.gif","mobile":"docs/images/frieren-mobile.png"}
+    },
+    {"project":"templates/theme-project/project.json","output":"examples/studio"}
+  ]
+}

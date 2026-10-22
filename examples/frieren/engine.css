@@ -1,0 +1,9 @@
+.lpb { position:relative; width:100%; min-width:0; overflow:hidden; isolation:isolate; background:#173d42; height:155px; }
+.lpb__stage { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.lpb__poster { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+.lpb__layer { position:absolute; inset:0; display:flex; justify-content:center; align-items:center; pointer-events:none; }
+.lpb__layer[hidden] { display:none; }
+.lpb__media { display:block; max-width:none; max-height:none; flex:none; object-fit:contain; user-select:none; pointer-events:none; transform-origin:center; }
+.lpb--moving .lpb__media { will-change:transform; }
+.lpb__taper { position:absolute; inset:0 0 auto; height:100px; background:linear-gradient(rgba(0,0,0,.4),transparent); pointer-events:none; }
+@media (prefers-reduced-motion:reduce) { .lpb__media { will-change:auto !important; } }

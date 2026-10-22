@@ -1,4 +1,65 @@
-# API 参考 / v1.2
+# API 参考 / v1.3
+
+## 推荐：统一主题接口
+
+```js
+const controller = await loadTheme(root, '/themes/summer/theme.json', {
+  signal: abortController.signal, timeout: 10000, mode: 'default'
+});
+await controller.setTheme('/themes/winter/theme.json');
+controller.setMode('auto');
+controller.setMode('pointer');
+controller.setMode('still');
+controller.setMode('default');
+controller.pause();
+controller.resume();
+controller.destroy();
+```
+
+`loadTheme`创建ThemeBanner并等待当前布局就绪；`createTheme(root, inlineTheme, options)`直接返回控制器，通过ready等待。生成的离线预览使用含内联配置和data图片的createTheme，生产网页使用loadTheme。
+
+| 项目 | 含义 |
+| --- | --- |
+| ready | 当前主题/布局的等待Promise；改变容器时跟随最新布局，替换主题时旧操作拒绝AbortError |
+| state | loading、ready、degraded、error、destroyed |
+| variant | desktop或mobile，按容器宽度与theme.breakpoint选择 |
+| mode | 实际生效的pointer、auto、still |
+| setTheme | 接受另一个URL或对象，取消旧操作并只挂载最后选择的资源 |
+| setMode(default) | 恢复主题默认输入策略，不覆盖系统减少动态效果 |
+| pause/resume | 宿主临时暂停与恢复，不丢失已选模式 |
+| destroy | 取消请求、帧与定时器，解除观察器与事件，恢复宿主属性，保留原有子节点 |
+
+JSON获取使用omit credentials和no-cache；默认10秒超时，支持100–120000ms。重要图层失败时状态为error，控制器仍可用、展示海报；JSON获取/解析错误会拒绝Promise。一次销毁后可在同一个容器重新创建控制器。
+
+### 标准动效配置
+
+```json
+"motion": {
+  "period": 8000,
+  "resumeDelay": 1800,
+  "fine": {"mode":"pointer","amplitude":0.85,"fps":60},
+  "coarse": {"mode":"auto","amplitude":0.55,"fps":30}
+}
+```
+
+period与resumeDelay使用毫秒。amplitude是进度幅度0–1，仍与清单中的interaction.strength相乘；触屏最多30fps，精细指针最多60fps。横向交互临时接管自动模式，结束后恢复；手动选择静态会跨布局、输入变化和减少动态的开关保留。
+
+页面隐藏、横幅离屏、窗口失焦、暂停或减少动态时停止自动循环。原生滚动和双指缩放由底层触摸方向判定与多触点取消处理。浏览器前进/后退缓存恢复时保留控制器与用户模式。
+
+### 主题事件
+
+```js
+root.addEventListener('theme:state', event => { /* {state,variant,mode,name} */ });
+root.addEventListener('theme:ready', event => { /* 当前布局完成，可读取state */ });
+root.addEventListener('theme:variant', event => { /* 变体加载完成 */ });
+root.addEventListener('theme:mode', event => { /* 生效模式改变 */ });
+root.addEventListener('theme:layout', event => { /* {...,width,height} */ });
+root.addEventListener('theme:error', event => { /* {...,message} */ });
+```
+
+对应观测属性是data-theme-state、data-theme-variant、data-theme-mode、data-theme-name和data-theme-input-kind；销毁时恢复宿主原值。[主题Schema](../schemas/theme.schema.json)与[制作流程](WORKFLOW.md)。
+
+## 底层绘制接口
 
 所有单位除图片导出尺寸外均为 CSS 像素。先加载 `dist/banner.css`。
 

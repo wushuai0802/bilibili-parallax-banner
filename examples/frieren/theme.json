@@ -1,0 +1,358 @@
+{
+  "$schema": "schema/theme.schema.json",
+  "version": 1,
+  "name": "frieren",
+  "artwork": {
+    "author": "Non-official AI recreation",
+    "source": "https://frieren-anime.jp/news/4335/",
+    "license": "Character and reference-art rights belong to their respective owners; excluded from the component MIT license"
+  },
+  "breakpoint": 767,
+  "minimumMargin": 4,
+  "motion": {
+    "period": 8000,
+    "resumeDelay": 1800,
+    "fine": {
+      "mode": "pointer",
+      "amplitude": 0.85,
+      "fps": 60
+    },
+    "coarse": {
+      "mode": "auto",
+      "amplitude": 0.55,
+      "fps": 30
+    }
+  },
+  "preview": {
+    "brand": "FRIEREN",
+    "title": "葬送的芙莉莲",
+    "subtitle": "水晶深处，旅途仍在继续。",
+    "eyebrow": "BEYOND JOURNEY'S END"
+  },
+  "variants": {
+    "desktop": {
+      "manifest": "desktop/banner-dd9d663c1536.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 1920,
+        "baseHeight": 216,
+        "pixelRatio": 2,
+        "description": "葬送的芙莉莲",
+        "poster": "poster-89e177185830.webp",
+        "posterPosition": "50% 50%",
+        "background": "#08283b",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "min": 190,
+          "max": 280,
+          "ratio": 0.125,
+          "mobile": 180,
+          "breakpoint": 0
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 1,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "cavern",
+            "src": "cavern-03a8326fc9a5.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              6,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "name": "远景 · 水晶洞窟",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "party",
+            "src": "party-aca6ae8a2426.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              38,
+              2
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "name": "主体 · 旅途中的三人",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "crystals",
+            "src": "crystals-3ed4f3b30ad1.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              86,
+              9
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "name": "前景 · 水晶",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        768,
+        820,
+        1024,
+        1280,
+        1366,
+        1440,
+        1920,
+        2560,
+        3440,
+        3840,
+        5120
+      ],
+      "protectedRegions": [
+        {
+          "id": "party-frieren-head",
+          "layerId": "party",
+          "rect": [
+            1090,
+            24,
+            115,
+            97.5
+          ]
+        },
+        {
+          "id": "party-fern-head",
+          "layerId": "party",
+          "rect": [
+            1294,
+            33,
+            105,
+            96
+          ]
+        },
+        {
+          "id": "party-stark-head",
+          "layerId": "party",
+          "rect": [
+            1459,
+            62.5,
+            115,
+            112.5
+          ]
+        }
+      ],
+      "textZones": [
+        {
+          "id": "site-title",
+          "rect": [
+            0.04,
+            0.45,
+            0.3,
+            0.5
+          ]
+        }
+      ]
+    },
+    "mobile": {
+      "manifest": "mobile/banner-ee1e217cd27a.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 375,
+        "baseHeight": 200,
+        "pixelRatio": 3,
+        "description": "葬送的芙莉莲",
+        "poster": "poster-d071839ab501.webp",
+        "posterPosition": "50% 50%",
+        "background": "#08283b",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "min": 120,
+          "max": 280,
+          "ratio": 0.5333333333333333,
+          "mobile": 180,
+          "breakpoint": 0
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 0.65,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "cavern",
+            "src": "cavern-9801cfcc632c.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              2,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "name": "远景 · 水晶洞窟",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "party",
+            "src": "party-31170c044a59.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              12,
+              0
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "name": "主体 · 旅途中的三人",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "crystals",
+            "src": "crystals-72d0febfb460.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              20,
+              2
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "name": "前景 · 水晶",
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        280,
+        320,
+        360,
+        375,
+        390,
+        412,
+        430,
+        600,
+        640,
+        767
+      ],
+      "protectedRegions": [
+        {
+          "id": "party-frieren-head",
+          "layerId": "party",
+          "rect": [
+            115.46666666666665,
+            107.85333333333334,
+            55.199999999999996,
+            46.800000000000004
+          ]
+        },
+        {
+          "id": "party-fern-head",
+          "layerId": "party",
+          "rect": [
+            213.38666666666666,
+            112.17333333333333,
+            50.4,
+            46.080000000000005
+          ]
+        },
+        {
+          "id": "party-stark-head",
+          "layerId": "party",
+          "rect": [
+            292.58666666666664,
+            126.33333333333333,
+            55.199999999999996,
+            54
+          ]
+        }
+      ],
+      "textZones": [
+        {
+          "id": "site-title",
+          "rect": [
+            0.048,
+            0.05,
+            0.6,
+            0.32
+          ]
+        }
+      ]
+    }
+  },
+  "revision": "91aceee8f1a6"
+}

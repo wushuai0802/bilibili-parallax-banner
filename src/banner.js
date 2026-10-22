@@ -1,5 +1,7 @@
 import {VERSION, alignedScale, clamp, fromBilibiliSplitLayer, layerState, layoutScale, normalizeConfig, resolveAssetUrl} from './model.js';
+import {bannerHeight} from './layout.js';
 export {VERSION, fromBilibiliSplitLayer};
+export {ThemeBanner, createTheme, loadTheme} from './theme.js';
 
 const mounted = new WeakMap();
 
@@ -187,7 +189,7 @@ export class ParallaxBanner {
     const width = this.root.clientWidth || this.root.getBoundingClientRect().width;
     if (!width) return;
     const rule = this.config.height;
-    const height = width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
+    const height = bannerHeight(this.config, width);
     if (this.width === width && this.height === height) return;
     this.width = width;
     this.height = height;
@@ -389,5 +391,6 @@ export async function loadBanner(root, manifestUrl, options = {}) {
   const response = await fetch(url, {signal: options.signal, credentials: 'omit'});
   if (!response.ok) throw new Error(`Manifest request failed (${response.status})`);
   const data = await response.json();
+  if (options.signal?.aborted) throw new DOMException('Banner loading was cancelled', 'AbortError');
   return createBanner(element, {...data, ...options, baseUrl: url.href});
 }

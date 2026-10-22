@@ -1,26 +1,11 @@
-# 芙莉莲 · 水晶之旅
+# frieren
 
-组件的影视主题展示。基于《葬送的芙莉莲》第二季官方海报进行 AI 重绘，拆分为背景、人物与近景水晶。
+Generated theme revision: 91aceee8f1a6. Component: 1.3.0.
 
-- 桌面：鼠标视差，可选自动演示。
-- 手机：默认 30fps 以内的轻量自动演示，可横向拖动，竖向滑动仍正常滚动页面。
-- 横向拖动后松手归位，若之前处于自动模式，短暂停留后恢复自动演示。
-- 系统减少动态效果、静态模式、页面后台或横幅离屏时停止动态。
-- 手机使用独立的三层构图，而不是仅切换一张静态海报。
-- v1.2：手机保留三个人物头部，标题移至上方留白；桌面人物也独立等比显示、底部对齐，避免窄窗口和超宽屏的裁头问题。
-- 静态、系统减少动态与动态模式使用同一套图层；切换时不会改成人物比例不同的海报。
-- 浏览器前进/后退缓存恢复时保留图层；横竖屏切换时清理旧实例并保留已选模式。
+Website: loadTheme(element, './theme.json'). Minimal host example: embed.html. Preview: index.html. Offline: artifacts/offline.html. Validation: artifacts/report.json. Model proofs: artifacts/contact-sheet.png.
 
-`assets/banner.json` 与 `assets/mobile.json` 分别记录桌面和手机规格。`theme.js` 负责示例的模式选择和可见性调度；核心组件不自动播放、不自行决定业务页面的动画策略。
+Artwork author: Non-official AI recreation
+Source: https://frieren-anime.jp/news/4335/
+Artwork license: Character and reference-art rights belong to their respective owners; excluded from the component MIT license
 
-手机图层导出尺寸为1125×600（375×200的3倍图），比例高度最高280px。人物使用 `fit:'contain',position:[0.5,1]`；背景继续铺满。`composition.json` 是构图参数和头部安全区的来源，替换角色后应同步更新并运行 `npm run check`。[完整素材合同](../../docs/ASSETS.md#芙莉莲示例的可复用构图合同)。
-
-运行 `npm run build` 会生成相对路径可部署页面、手机素材、配置包装和 `outputs/frieren-banner-preview.html` 离线单文件。
-运行 `npm run showcase:gif` 更新 README 的动画示意图，它使用与组件相同的图层和位移模型。
-运行 `npm run showcase:composition` 生成6种宽度、3个位移位置的构图图和拼图，便于逐张检查。它们是布局模型渲染图，不是浏览器截图；手机预览图也会同步更新。
-
-## 素材说明
-
-[官方参考海报发布页](https://frieren-anime.jp/news/4335/)
-
-此展示为非官方 AI 重绘预览，角色、美术参考与作品名称的权利归相应权利人。影视主题素材不纳入仓库组件代码的 MIT 许可；根目录的几何示例与组件代码仍按 MIT 使用。
+The component code is MIT; artwork uses the license above.

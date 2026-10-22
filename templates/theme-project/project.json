@@ -1,0 +1,12 @@
+{
+  "$schema": "../../schemas/project.schema.json",
+  "version": 1,
+  "name": "studio",
+  "artwork": {"author":"Bilibili Parallax Banner contributors","source":"Original editable geometric source layers","license":"MIT"},
+  "preview": {"brand":"FIELD NOTES","title":"山野来信","subtitle":"同一套源图，两种自然构图。","eyebrow":"SOMEWHERE BETWEEN LAYERS"},
+  "layers": [
+    {"id":"background","role":"background","src":"source/background.svg"},
+    {"id":"subject","role":"subject","src":"source/subject.svg","regions":[{"id":"head","rect":[2340,50,280,260]}]},
+    {"id":"foreground","role":"foreground","src":"source/foreground.svg"}
+  ]
+}

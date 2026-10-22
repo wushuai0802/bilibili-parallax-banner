@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 - 2026-10-23
+
+- Add createTheme/loadTheme and a single theme controller for responsive selection, motion policy, takeover, cancellation, visibility and lifecycle cleanup.
+- Add a standard source project, role presets, crop/box/fit/anchor layout and automatic source-region conversion to both output canvases.
+- Add init/build/check commands that export images, posters, hashed manifests, previews, annotated proofs, reports and a deployment ZIP.
+- Preserve previous live metadata on validation failure, isolate failed previews and exclude source or unrelated files from deployment archives.
+- Replace artwork-specific runtime, mobile cropping and preview scripts with one catalog-driven pipeline for prepared art and a separate default-layout source example.
+- Add source/runtime JSON Schemas, an AI brief and a documented artwork-to-website workflow.
+- Add browser CI for Chromium desktop/touch and WebKit touch, with real screenshots and native Chromium touch checks.
+- Decode validation images from buffers to avoid persistent file locks on Windows.
 
 - Add a dedicated image delivery specification and reusable desktop/mobile artwork templates with an AI task brief.
 - Add paired-theme validation for images, posters, recorded artwork metadata, subject regions and declared text zones across sampled widths and motion positions.
