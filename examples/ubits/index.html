@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>UBits · 4:1 Banner 适配预览</title>
+  <link rel="stylesheet" href="../../dist/banner.css">
+  <link rel="stylesheet" href="../../dist/ubits.css">
+  <link rel="stylesheet" href="./site.css">
+</head>
+<body>
+  <div class="demo-page">
+    <header class="demo-topbar"><a class="demo-logo" href="../../">BANNER LAB</a><span class="demo-label">UBits · 4:1 适配</span><button id="panel-toggle" type="button" aria-expanded="false" aria-controls="demo-profile">展开个人中心</button></header>
+    <main class="ub-shell is-side-collapsed">
+      <div class="ub-content">
+        <section class="ub-home-banner-section">
+          <article class="ub-banner" id="ub-home-banner" aria-label="首页推荐轮播">
+            <a class="ub-banner-link" id="ub-home-banner-link" href="#demo-detail" aria-label="远行者"></a>
+            <button class="ub-banner-nav ub-banner-nav-prev" type="button" aria-label="上一页">←</button>
+            <div class="ub-dots"><button type="button" class="ub-dot" data-slide="0" aria-label="远行者" aria-current="true"></button><button type="button" class="ub-dot" data-slide="1" aria-label="原生静态海报"></button></div>
+            <button class="ub-banner-nav ub-banner-nav-next" type="button" aria-label="下一页">→</button>
+          </article>
+        </section>
+        <div class="search-skeleton" aria-hidden="true"><span></span><i></i><b></b></div>
+        <section class="demo-notes">
+          <div class="demo-kicker">A CONTAINER, NOT A SCREEN</div>
+          <h1>让画面，适应空间。</h1>
+          <p>展开个人中心、拖窄窗口，横幅始终保持 4:1。电脑鼠标控制层次，手机自动轻动效；横向滑动仍交给轮播。</p>
+          <div class="demo-tools"><label><input id="ub-top-motion-toggle" type="checkbox" checked> 动效</label><label><input id="autoplay" type="checkbox"> 自动轮播</label><output id="measure" aria-live="polite">正在准备画面…</output></div>
+          <p id="demo-detail">本页只模拟导航、侧栏和搜索区域的占位，不包含站点内容、账户信息或原站图片。</p>
+          <a href="./theme/">查看标准主题预览</a>
+        </section>
+      </div>
+      <aside id="demo-profile" class="demo-profile" aria-label="个人中心占位" hidden><div class="profile-orb" aria-hidden="true"></div><h2>个人中心</h2><p>宽屏占据右侧一列，窄屏使用浮层。</p><div class="profile-lines" aria-hidden="true"><i></i><i></i><i></i><i></i></div><button id="close-panel" type="button">收起个人中心</button></aside>
+    </main>
+  </div>
+  <script src="../../dist/ubits.min.js"></script>
+  <script src="./site.js"></script>
+</body>
+</html>

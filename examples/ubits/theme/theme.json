@@ -1,0 +1,307 @@
+{
+  "$schema": "schema/theme.schema.json",
+  "version": 1,
+  "name": "banner-4x1",
+  "artwork": {
+    "author": "Bilibili Parallax Banner contributors",
+    "source": "Original editable vector layers; no UBits artwork copied",
+    "license": "MIT"
+  },
+  "breakpoint": 767,
+  "minimumMargin": 4,
+  "motion": {
+    "period": 8000,
+    "resumeDelay": 1800,
+    "fine": {
+      "mode": "pointer",
+      "amplitude": 0.85,
+      "fps": 60
+    },
+    "coarse": {
+      "mode": "auto",
+      "amplitude": 0.55,
+      "fps": 30
+    }
+  },
+  "preview": {
+    "brand": "HORIZON",
+    "title": "远行者",
+    "subtitle": "4:1 容器适配示例",
+    "eyebrow": "BEYOND THE HORIZON",
+    "proofWidths": [
+      280,
+      362,
+      657,
+      758,
+      768,
+      994,
+      1244,
+      1638
+    ]
+  },
+  "variants": {
+    "desktop": {
+      "manifest": "desktop/banner-ab8965cac199.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 1920,
+        "baseHeight": 480,
+        "pixelRatio": 2,
+        "description": "远行者",
+        "poster": "poster-ade819b0248f.webp",
+        "posterPosition": "50% 50%",
+        "background": "#111d2e",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "aspectRatio": 4,
+          "min": 155,
+          "max": 240,
+          "ratio": 0.09375,
+          "mobile": 144,
+          "breakpoint": 640
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 1,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "background",
+            "src": "background-4a837d92593c.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              6,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "subject",
+            "src": "subject-33d8ca7b312b.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              24,
+              0
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "foreground",
+            "src": "foreground-2d26e5f1b08a.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              60,
+              4
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        768,
+        820,
+        994,
+        1024,
+        1244,
+        1280,
+        1440,
+        1638,
+        1920,
+        2560,
+        3440,
+        5120
+      ],
+      "protectedRegions": [
+        {
+          "id": "subject-head",
+          "layerId": "subject",
+          "rect": [
+            1150.945701357466,
+            30.248554913294797,
+            164.85067873303169,
+            162.3121387283237
+          ]
+        }
+      ],
+      "textZones": []
+    },
+    "mobile": {
+      "manifest": "mobile/banner-f4297f7d319a.json",
+      "config": {
+        "version": 1,
+        "mode": "aligned",
+        "baseWidth": 400,
+        "baseHeight": 100,
+        "pixelRatio": 3,
+        "description": "远行者",
+        "poster": "poster-36bd27cb07f6.webp",
+        "posterPosition": "50% 50%",
+        "background": "#111d2e",
+        "taper": true,
+        "loadTimeout": 10000,
+        "height": {
+          "aspectRatio": 4,
+          "min": 155,
+          "max": 240,
+          "ratio": 0.09375,
+          "mobile": 144,
+          "breakpoint": 640
+        },
+        "interaction": {
+          "enabled": true,
+          "touch": "drag",
+          "strength": 0.65,
+          "resetDuration": 200
+        },
+        "layers": [
+          {
+            "id": "background",
+            "src": "background-e0f89ee46ed1.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              6,
+              0
+            ],
+            "required": true,
+            "requireAlpha": false,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "subject",
+            "src": "subject-2d6165a626ae.webp",
+            "fit": "contain",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              4,
+              0
+            ],
+            "required": true,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          },
+          {
+            "id": "foreground",
+            "src": "foreground-1829d47c550d.webp",
+            "fit": "canvas",
+            "position": [
+              0.5,
+              1
+            ],
+            "offset": [
+              12,
+              1
+            ],
+            "required": false,
+            "requireAlpha": true,
+            "type": "image",
+            "scale": 1,
+            "initial": [
+              0,
+              0
+            ],
+            "opacity": 1,
+            "rotate": 0,
+            "blur": 0
+          }
+        ]
+      },
+      "viewports": [
+        280,
+        320,
+        362,
+        375,
+        390,
+        412,
+        430,
+        600,
+        657,
+        740,
+        758,
+        767
+      ],
+      "protectedRegions": [
+        {
+          "id": "subject-head",
+          "layerId": "subject",
+          "rect": [
+            230.61236802413273,
+            7.2485549132947975,
+            32.85067873303168,
+            32.312138728323696
+          ]
+        }
+      ],
+      "textZones": []
+    }
+  },
+  "revision": "549f3432aaec"
+}

@@ -1,0 +1,10 @@
+/* Include after the engine and site styles. The site's own 4:1 box owns layout. */
+#ub-home-banner > .lpb-ubits-visual,
+[data-mobile-home-banner] > .lpb-ubits-visual {
+  position:absolute; inset:0; z-index:0; display:block; width:100%;
+  height:auto !important; min-width:0; min-height:0; max-height:none; aspect-ratio:4 / 1;
+  margin:0; padding:0; border:0; pointer-events:none; opacity:0;
+}
+#ub-home-banner > .lpb-ubits-visual[data-ubits-active="true"],
+[data-mobile-home-banner] > .lpb-ubits-visual[data-ubits-active="true"] { opacity:1; }
+.lpb-ubits-visual .lpb__taper { display:none; }

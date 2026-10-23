@@ -6,6 +6,7 @@
       "gif": true,
       "publish": {"offline":"outputs/frieren-banner-preview.html","gif":"docs/images/frieren-parallax.gif","mobile":"docs/images/frieren-mobile.png"}
     },
-    {"project":"templates/theme-project/project.json","output":"examples/studio"}
+    {"project":"templates/theme-project/project.json","output":"examples/studio"},
+    {"project":"templates/banner-4x1/project.json","output":"examples/ubits/theme"}
   ]
 }

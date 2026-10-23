@@ -1,4 +1,4 @@
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 
 function finite(value, fallback, name, low = -10000, high = 10000) {
@@ -58,7 +58,8 @@ export function normalizeConfig(input) {
     background: input.background ?? '#173d42',
     taper: input.taper !== false,
     loadTimeout: finite(input.loadTimeout, 10000, 'loadTimeout', 100, 120000),
-    height: {min, max, ratio: finite(height.ratio, 0.09375, 'height.ratio', 0.01, 2),
+    height: {...(height.aspectRatio === undefined ? {} : {aspectRatio: finite(height.aspectRatio, 4, 'height.aspectRatio', 0.5, 100)}),
+      min, max, ratio: finite(height.ratio, 0.09375, 'height.ratio', 0.01, 2),
       mobile: finite(height.mobile, 144, 'height.mobile', 1, 2000), breakpoint: finite(height.breakpoint, 640, 'height.breakpoint', 0, 3000)},
     interaction: {enabled: input.interaction?.enabled !== false,
       touch,

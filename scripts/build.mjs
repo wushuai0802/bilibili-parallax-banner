@@ -12,6 +12,9 @@ await build({entryPoints:['src/banner.js'], bundle:true, format:'iife', globalNa
 await build({entryPoints:['src/banner.js'], bundle:true, format:'cjs', outfile:'dist/banner.umd.cjs', target:'es2020'});
 await copyFile('src/banner.css', 'dist/banner.css');
 await copyFile('src/banner.d.ts', 'dist/banner.d.ts');
+await build({entryPoints:['integrations/ubits/banner.js'],bundle:true,format:'esm',outfile:'dist/ubits.js',target:'es2020'});
+await build({entryPoints:['integrations/ubits/banner.js'],bundle:true,format:'iife',globalName:'UBitsBanner',outfile:'dist/ubits.min.js',minify:true,target:'es2020'});
+await copyFile('integrations/ubits/banner.css','dist/ubits.css');
 
 const manifest = JSON.parse(await readFile('assets/demo/banner.json', 'utf8'));
 // The JSON manifest is canonical; this generated wrapper enables file:// previews.

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="960" viewBox="0 0 1920 480">
+  <defs>
+    <linearGradient id="sky" x2="0.8" y2="1"><stop stop-color="#0b172b"/><stop offset=".6" stop-color="#29455b"/><stop offset="1" stop-color="#a57f75"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#ffdcc1" stop-opacity=".26"/><stop offset="1" stop-color="#ffdcc1" stop-opacity="0"/></radialGradient>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#536470"/><stop offset="1" stop-color="#14293d"/></linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1920v480H0z"/>
+  <ellipse cx="1360" cy="160" rx="480" ry="280" fill="url(#halo)"/>
+  <circle cx="1360" cy="144" r="84" fill="#e8c9a8"/>
+  <path d="M1200 190q240-180 480-140" fill="none" stroke="#c5d6df" stroke-opacity=".18" stroke-width="5"/>
+  <g fill="#e2e9df" opacity=".65"><circle cx="182" cy="86" r="1.4"/><circle cx="449" cy="48" r="2"/><circle cx="780" cy="116" r="1.6"/><circle cx="1030" cy="44" r="1"/><circle cx="1760" cy="60" r="1.8"/></g>
+  <path fill="#263c51" d="m0 346 236-171 170 132 200-118 287 167 275-122 179 115 281-172 292 164v139H0z"/>
+  <path fill="#1a3044" d="m0 390 330-133 271 145 279-118 310 122 270-100 460 90v84H0z"/>
+  <path fill="url(#water)" d="M0 406q420-40 960 10t960-12v76H0z"/>
+  <g fill="none" stroke="#e6bd9c" stroke-opacity=".22"><path d="M1140 430h350m-235 11h310m-370 18h290"/><path d="M230 445h300m70 19h200"/></g>
+</svg>

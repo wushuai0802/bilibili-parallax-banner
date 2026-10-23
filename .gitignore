@@ -4,7 +4,7 @@ outputs/
 logs/
 tmp/
 coverage/
-examples/*/artifacts/
+examples/**/artifacts/
 test-results/
 playwright-report/
 *.log

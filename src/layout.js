@@ -2,6 +2,7 @@ import {clamp, layoutScale, layerState} from './model.js';
 
 export function bannerHeight(config, width) {
   const rule = config.height;
+  if (rule.aspectRatio !== undefined) return width / rule.aspectRatio;
   return width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
 }
 

@@ -1,6 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {alignedScale, bezierAt, fromBilibiliSplitLayer, layerState, normalizeConfig, resolveAssetUrl} from '../src/model.js';
+import {bannerHeight} from '../src/layout.js';
+
+test('exact aspect ratios survive small slots, fractional widths and wide containers without height clamps', () => {
+  const value=normalizeConfig({height:{aspectRatio:4,min:190,max:280,mobile:180,breakpoint:640},layers:[{src:'background.webp'}]});
+  for(const width of [64,280,362,657,758.125,767,768,994,1244,1638,5120,10000])assert.equal(bannerHeight(value,width),width/4);
+  const legacy=normalizeConfig({height:{min:190,max:280,mobile:180,breakpoint:640,ratio:.125},layers:[{src:'background.webp'}]});
+  assert.equal(bannerHeight(legacy,390),180);assert.equal(bannerHeight(legacy,1200),190);assert.equal(bannerHeight(legacy,3440),280);
+});
+
+test('invalid exact aspect ratios are rejected instead of producing infinite or negative heights', () => {
+  for(const aspectRatio of [0,-4,NaN,Infinity,101,'4:1'])assert.throws(()=>normalizeConfig({height:{aspectRatio},layers:[{src:'bg'}]}),/height.aspectRatio/);
+});
 
 const config = () => normalizeConfig({layers:[{src:'bg.svg',offset:[6,0]},{src:'fg.svg',offset:[64,12]}]});
 

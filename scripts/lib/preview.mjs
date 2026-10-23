@@ -10,12 +10,13 @@ function initialStyles(theme) {
   const rule=name=>{
     const definition=theme.variants[name],config=normalizeConfig(definition.config);
     const poster=`${name}/${config.poster}`;
+    if(config.height.aspectRatio!==undefined)return `height:auto;min-height:0;max-height:none;aspect-ratio:${config.height.aspectRatio};background:${config.background} url(${JSON.stringify(poster)}) center/cover no-repeat;`;
     return `height:auto;min-height:${config.height.min}px;max-height:${config.height.max}px;aspect-ratio:${1/config.height.ratio};background:${config.background} url(${JSON.stringify(poster)}) center/cover no-repeat;`;
   };
   let css=`#banner{${rule('desktop')}}@media(max-width:${theme.breakpoint}px){#banner{${rule('mobile')}}}`;
   for(const name of ['desktop','mobile']) {
     const height=theme.variants[name].config.height;
-    if(height.breakpoint>0)css+=`@media ${name==='desktop'?`(min-width:${theme.breakpoint+1}px) and `:''}(max-width:${Math.min(name==='mobile'?theme.breakpoint:10000,height.breakpoint)}px){#banner{height:${height.mobile}px;min-height:0;max-height:none;aspect-ratio:auto}}`;
+    if(height.aspectRatio===undefined&&height.breakpoint>0)css+=`@media ${name==='desktop'?`(min-width:${theme.breakpoint+1}px) and `:''}(max-width:${Math.min(name==='mobile'?theme.breakpoint:10000,height.breakpoint)}px){#banner{height:${height.mobile}px;min-height:0;max-height:none;aspect-ratio:auto}}`;
   }
   return css;
 }

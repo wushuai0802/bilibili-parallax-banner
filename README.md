@@ -10,14 +10,16 @@ Inspired by Bilibili-style pointer parallax. MIT component code. Not affiliated 
 
 [芙莉莲预览](https://wushuai0802.github.io/bilibili-parallax-banner/examples/frieren/) · [通用源图自动排版示例](https://wushuai0802.github.io/bilibili-parallax-banner/examples/studio/) · [下载离线HTML](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/v1.3.0/frieren-banner-preview.html)
 
-两套示例调用同一生成工具和主题控制器。动图与构图图按布局模型生成；网页预览使用真实组件，浏览器截图由CI单独提供。影视示例为非官方AI重绘，[素材说明](themes/frieren/README.md)。
+[UBits 4:1适配预览：支持个人中心开合](https://wushuai0802.github.io/bilibili-parallax-banner/examples/ubits/) · [站点对接文档](docs/UBITS.md) · [4:1源工程模板](templates/banner-4x1/README.md)
+
+所有示例调用同一生成工具和主题控制器。动图与构图图按布局模型生成；网页预览使用真实组件，浏览器截图由CI单独提供。影视示例为非官方AI重绘，[素材说明](themes/frieren/README.md)。
 
 ## 网站接入一次
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.3.0/dist/banner.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.4.0/dist/banner.css">
 <div id="banner"></div>
-<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.3.0/dist/banner.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/wushuai0802/bilibili-parallax-banner@v1.4.0/dist/banner.min.js"></script>
 <script>
   LayeredBanner.loadTheme('#banner', '/themes/summer/theme.json')
     .then(controller => { window.siteBanner = controller; });
@@ -42,6 +44,8 @@ npm ci --ignore-scripts
 npm run theme:init -- themes/summer
 ```
 
+固定4:1容器使用 `npm run theme:init -- themes/my-banner --preset 4x1`。按容器宽度选择构图，兼容侧栏开合；新字段 `height.aspectRatio:4` 优先于原有的最小/最大高度与固定手机高度。
+
 替换源图、填写实际作者信息，并在 `project.json` 标注每个重要头部或物体。源图可保留原分辨率，默认透明边缘裁切、双端布局与动效参数由工具处理。
 
 ```sh
@@ -59,6 +63,7 @@ npm run theme:check -- outputs/summer/theme.json
 | --- | --- |
 | 从海报到网站的完整交接 | [标准流程](docs/WORKFLOW.md) |
 | 网站、React、Vue接入 | [接入指南](docs/INTEGRATION.md) |
+| UBits 4:1、侧栏和原生轮播 | [站点适配](docs/UBITS.md) |
 | 源图与导出图片要求 | [图片规范](docs/IMAGE-SPEC.md) |
 | 可复制的制作工程 | [源工程模板](templates/theme-project/README.md) |
 | 已经做好双端图片的接入方 | [交付目录模板](templates/theme/README.md) |

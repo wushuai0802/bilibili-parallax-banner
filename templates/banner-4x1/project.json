@@ -1,0 +1,17 @@
+{
+  "$schema": "../../schemas/project.schema.json",
+  "version": 1,
+  "name": "banner-4x1",
+  "artwork": {"author":"Bilibili Parallax Banner contributors","source":"Original editable vector layers; no UBits artwork copied","license":"MIT"},
+  "background": "#111d2e",
+  "preview": {"brand":"HORIZON","title":"远行者","subtitle":"4:1 容器适配示例","eyebrow":"BEYOND THE HORIZON","proofWidths":[280,362,657,758,768,994,1244,1638]},
+  "layers": [
+    {"id":"background","role":"background","src":"source/background.svg","runtime":{"offset":[6,0]}},
+    {"id":"subject","role":"subject","src":"source/subject.svg","layout":{"box":[0.42,0.06,0.44,0.9]},"runtime":{"offset":[24,0]},"regions":[{"id":"head","rect":[128,30,264,260]}]},
+    {"id":"foreground","role":"foreground","src":"source/foreground.svg","runtime":{"offset":[60,4]}}
+  ],
+  "variants": {
+    "desktop": {"canvas":[1920,480],"pixelRatio":2,"height":{"aspectRatio":4},"textZones":[],"viewports":[768,820,994,1024,1244,1280,1440,1638,1920,2560,3440,5120]},
+    "mobile": {"canvas":[400,100],"pixelRatio":3,"height":{"aspectRatio":4},"textZones":[],"viewports":[280,320,362,375,390,412,430,600,657,740,758,767],"layers":{"subject":{"layout":{"box":[0.4,0.07,0.43,0.86]},"runtime":{"offset":[4,0]}},"foreground":{"runtime":{"offset":[12,1]}}}}
+  }
+}

@@ -10,7 +10,7 @@ export async function run(args) {
   const [command,...rest]=args,flags={},positionals=[];
   for(let index=0;index<rest.length;index++) {
     const value=rest[index];
-    if(['--out','--name'].includes(value)) {
+    if(['--out','--name','--preset'].includes(value)) {
       if(!rest[index+1]||rest[index+1].startsWith('--'))throw new Error(`${value} requires a value`);
       flags[value.slice(2)]=rest[++index];
     } else if(['--gif','--no-proofs','--overwrite'].includes(value))flags[value.slice(2)]=true;
@@ -19,8 +19,9 @@ export async function run(args) {
   }
   if(positionals.length>1)throw new Error('Use one project or theme path');
   if(command==='init') {
-    if(!positionals[0])throw new Error('Usage: npm run theme:init -- <new-directory> [--name theme-name]');
-    const destination=resolve(positionals[0]),template=fileURLToPath(new URL('../templates/theme-project/',import.meta.url));
+    if(!positionals[0])throw new Error('Usage: npm run theme:init -- <new-directory> [--name theme-name] [--preset 4x1]');
+    if(flags.preset!==undefined&&flags.preset!=='4x1')throw new Error('Supported preset: 4x1; omit --preset for the full-width default');
+    const destination=resolve(positionals[0]),template=fileURLToPath(new URL(flags.preset==='4x1'?'../templates/banner-4x1/':'../templates/theme-project/',import.meta.url));
     const project=await readJson(join(template,'project.json'));
     const suggested=basename(destination).toLowerCase().replace(/[^a-z0-9-]/g,'-');
     project.name=flags.name??(/^[a-z]/.test(suggested)?suggested:'new-theme');

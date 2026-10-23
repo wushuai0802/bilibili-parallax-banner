@@ -1,4 +1,4 @@
-# API 参考 / v1.3
+# API 参考 / v1.4
 
 ## 推荐：统一主题接口
 
@@ -89,6 +89,8 @@ banner.destroy();
 `pause()` 归位并暂停视频；`resume()` 恢复允许的交互。`setProgress(-1..1)` 用于设计预览，遵守系统减少动态和暂停设置；默认只允许精细指针，设置 `interaction.touch:'drag'` 后也可在触屏上使用。不启动自动循环。
 
 ## 配置
+
+固定比例容器可使用`height:{aspectRatio:4}`。aspectRatio为宽/高，支持0.5–100，优先于min/max/ratio/mobile/breakpoint；没有该字段的既有配置保持原行为。宿主CSS首屏同样预留`aspect-ratio:4/1;min-height:0`，避免加载前后比例变化。
 
 | 字段 | 默认 | 含义 |
 | --- | --- | --- |

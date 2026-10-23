@@ -10,7 +10,7 @@ export interface BannerConfig {
   version?: 1; mode?: 'aligned' | 'bilibili';
   baseWidth?: number; baseHeight?: number; pixelRatio?: number; baseUrl?: string;
   description?: string; poster?: string; mobilePoster?: string; posterPosition?: string; background?: string; taper?: boolean; loadTimeout?: number;
-  height?: {min?: number; max?: number; ratio?: number; mobile?: number; breakpoint?: number};
+  height?: {aspectRatio?: number; min?: number; max?: number; ratio?: number; mobile?: number; breakpoint?: number};
   interaction?: {enabled?: boolean; strength?: number; resetDuration?: number; touch?: 'none' | 'drag'};
   layers: BannerLayer[];
 }

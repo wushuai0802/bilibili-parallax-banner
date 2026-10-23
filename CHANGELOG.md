@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 - 2026-10-23
+
+- Add exact container aspect ratios without mobile fixed heights or legacy clamps.
+- Add a reusable 4:1 source preset with dual-device exports and original MIT artwork.
+- Add a UBits visual bridge that preserves native links, carousel controls, touch ownership and the site motion toggle.
+- Add a responsive integration preview and measured site handoff, including personal-panel expansion and container-driven variant changes.
+- Add regression coverage for ratio sizing, native fallback, cancellation, sidebar breakpoints and touch carousel behavior.
+
 ## 1.3.0 - 2026-10-23
 
 - Add createTheme/loadTheme and a single theme controller for responsive selection, motion policy, takeover, cancellation, visibility and lifecycle cleanup.

@@ -72,6 +72,21 @@ test('init creates an editable source project and refuses to overwrite it',()=>f
   assert.equal((await readJson(join(path,'project.json'))).name,'new-theme');
 }));
 
+test('the 4x1 preset builds two undistorted canvases, exact-height embeds and a validated deployment package',()=>fixture(async f=>{
+  const path=join(f.temporary,'four-to-one');
+  await exec(process.execPath,['scripts/theme.mjs','init',path,'--preset','4x1']);
+  const built=await buildTheme(join(path,'project.json'),f.output,{proofs:false});
+  assert.equal(built.ok,true);assert.deepEqual(built.report.errors,[]);
+  for(const [name,w,h] of [['desktop',1920,480],['mobile',400,100]]) {
+    const config=built.theme.variants[name].config;
+    assert.deepEqual([config.baseWidth,config.baseHeight,config.height.aspectRatio],[w,h,4]);
+  }
+  const embed=await readFile(join(f.output,'embed.html'),'utf8');
+  assert.match(embed,/min-height:0;max-height:none;aspect-ratio:4;/);
+  assert.doesNotMatch(embed,/height:180px/);
+  await assert.rejects(exec(process.execPath,['scripts/theme.mjs','init',join(f.temporary,'invalid'),'--preset','unknown']));
+}));
+
 test('prepared full-canvas artwork is preserved by the generic pipeline',async()=>{
   const project=await readJson('themes/frieren/project.json'),theme=await readJson('examples/frieren/theme.json');
   for(const source of project.layers) {

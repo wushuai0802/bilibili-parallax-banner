@@ -31,7 +31,7 @@ __export(banner_exports, {
 module.exports = __toCommonJS(banner_exports);
 
 // src/model.js
-var VERSION = "1.3.0";
+var VERSION = "1.4.0";
 var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
 function finite(value, fallback, name, low = -1e4, high = 1e4) {
   if (value === void 0) return fallback;
@@ -89,6 +89,7 @@ function normalizeConfig(input) {
     taper: input.taper !== false,
     loadTimeout: finite(input.loadTimeout, 1e4, "loadTimeout", 100, 12e4),
     height: {
+      ...height.aspectRatio === void 0 ? {} : { aspectRatio: finite(height.aspectRatio, 4, "height.aspectRatio", 0.5, 100) },
       min,
       max,
       ratio: finite(height.ratio, 0.09375, "height.ratio", 0.01, 2),
@@ -239,6 +240,7 @@ function fromBilibiliSplitLayer(input, options = {}) {
 // src/layout.js
 function bannerHeight(config, width) {
   const rule = config.height;
+  if (rule.aspectRatio !== void 0) return width / rule.aspectRatio;
   return width <= rule.breakpoint ? rule.mobile : clamp(width * rule.ratio, rule.min, rule.max);
 }
 
