@@ -10,6 +10,10 @@ import {localFile,readJson,digest,json,put,fileList,inside,publishFiles,xml} fro
 import {renderScene,sceneLayers} from './render.mjs';
 import {validateTheme} from '../validate-theme.mjs';
 import {writePreview} from './preview.mjs';
+import {verifyPreservation} from './preservation.mjs';
+import {buildFingerprint,cachedBuild,outputHashes} from './build-cache.mjs';
+import {writeUbitsPreview} from './ubits-preview.mjs';
+export const BUILD_CAPABILITIES=Object.freeze({preservation:1,quickPreview:1,ubitsOffline:1,cache:1,websitePackage:1});
 
 function alphaBounds(data,width,height) {
   let left=width,top=height,right=0,bottom=0;
@@ -110,9 +114,16 @@ async function animation(theme,stage) {
 }
 
 export async function buildTheme(projectPath,outputPath,options={}) {
+  const started=performance.now();
   const input=resolve(projectPath),directory=dirname(input),project=normalizeProject(await readJson(input));
   const output=resolve(outputPath??join('outputs',project.name));
   if(inside(output,input))throw new Error('Output directory cannot contain the source project file');
+  const inputFingerprint=await buildFingerprint(input,project,options);
+  if(options.reuse){
+    const cached=await cachedBuild(output,inputFingerprint);
+    if(cached)return {...cached,elapsedMs:performance.now()-started};
+  }
+  const preservation=await verifyPreservation(project,directory);
   await mkdir(dirname(output),{recursive:true});
   const stage=await mkdtemp(join(dirname(output),'.theme-build-'));
   const warnings=[],cache=new Map(),theme={$schema:'schema/theme.schema.json',version:1,name:project.name,artwork:project.artwork,
@@ -144,18 +155,25 @@ export async function buildTheme(projectPath,outputPath,options={}) {
     validation.warnings.push(...warnings);
     const proofItems=options.proofs===false?[]:await proofs(theme,stage,project.preview??{});
     await writePreview(stage,theme,{proofs:proofItems});
+    if(options.ubits)await writeUbitsPreview(stage,theme,{reference:project.preserve?await localFile(directory,project.preserve.reference):null});
     const report={version:1,generatorVersion:VERSION,name:theme.name,revision:theme.revision,
-      kind:'image-decode-and-layout-validation',visuals:'Model renders; browser screenshots are produced separately by browser tests.',...validation,proofs:proofItems};
+      kind:'image-decode-and-layout-validation',visuals:'Model renders; browser screenshots are produced separately by browser tests.',...validation,proofs:proofItems,preservation};
     await put(stage,'artifacts/report.json',json(report));
     if(options.gif)await put(stage,'artifacts/preview.gif',await animation(theme,stage));
     await put(stage,'README.md',`# ${project.name}\n\nGenerated theme revision: ${theme.revision}. Component: ${VERSION}.\n\nWebsite: loadTheme(element, './theme.json'). Minimal host example: embed.html. Preview: index.html. Offline: artifacts/offline.html. Validation: artifacts/report.json.${proofItems.length?' Model proofs: artifacts/contact-sheet.png.':''}\n\nArtwork author: ${project.artwork.author}\nSource: ${project.artwork.source}\nArtwork license: ${project.artwork.license}\n\nThe component code is MIT; artwork uses the license above.\n`);
     const publicFiles=await fileList(stage);
+    const websiteFiles=publicFiles.filter(file=>file==='theme.json'||file==='README.md'||file==='embed.html'||file==='engine.min.js'||file==='engine.css'||file.startsWith('desktop/')||file.startsWith('mobile/')||file.startsWith('schema/'));
+    const websiteZip={};
+    for(const file of websiteFiles)websiteZip[file]=new Uint8Array(await readFile(join(stage,file)));
+    websiteZip['README.md']=strToU8('# '+project.name+'\n\nWebsite entry: theme.json. Keep desktop/ and mobile/ paths and hashed filenames intact.\n\nOpen embed.html through HTTP(S) for the minimal integration. engine.min.js and engine.css are included. UBits uses its existing banner bridge with the theme URL.\n\nArtwork author: '+project.artwork.author+'\nSource: '+project.artwork.source+'\nArtwork license: '+project.artwork.license+'\n\nComponent: '+VERSION+'. Theme revision: '+theme.revision+'. Editing sources and visual proofs are supplied separately.\n');
+    await put(stage,'artifacts/website.zip',zipSync(websiteZip,{level:3,mtime:new Date('2020-01-01T00:00:00Z')}));
     const zipFiles={};
     for(const file of publicFiles)if(!file.startsWith('artifacts/proofs/'))zipFiles[file]=new Uint8Array(await readFile(join(stage,file)));
     zipFiles['build-info.json']=strToU8(json({generatorVersion:VERSION,revision:theme.revision,files:publicFiles}));
     await put(stage,'artifacts/theme.zip',zipSync(zipFiles,{level:6,mtime:new Date('2020-01-01T00:00:00Z')}));
     const files=await fileList(stage);
     await put(stage,'build-info.json',json({generatorVersion:VERSION,revision:theme.revision,files}));
+    await put(stage,'artifacts/build-cache.json',json({inputFingerprint,outputHashes:await outputHashes(stage,[...files,'build-info.json'])}));
     if(!validation.ok) {
       const failed=join(output,'artifacts','failed',theme.revision);
       await publishFiles(stage,failed,await fileList(stage));
@@ -167,7 +185,7 @@ export async function buildTheme(projectPath,outputPath,options={}) {
       for(const file of files)try {await access(join(output,file));throw new Error(`Output contains an unowned file: ${file}; choose a new directory or explicitly use --overwrite`);}catch(error){if(error.code!=='ENOENT')throw error;}
     }
     await publishFiles(stage,output,await fileList(stage));
-    return {ok:true,output,theme,report};
+    return {ok:true,output,theme,report,reused:false,elapsedMs:performance.now()-started};
   } finally {
     const absolute=await realpath(stage);
     if(!inside(dirname(output),absolute)||absolute===resolve(dirname(output)))throw new Error('Refusing to remove an unexpected staging path');

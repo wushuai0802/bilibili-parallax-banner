@@ -41,6 +41,7 @@
     "validate:showcase": "node scripts/theme.mjs check examples/frieren/theme.json && node scripts/theme.mjs check examples/studio/theme.json && node scripts/theme.mjs check examples/ubits/theme/theme.json",
     "validate:theme": "node scripts/validate-theme.mjs",
     "theme:init": "node scripts/theme.mjs init",
+    "theme:preserve": "node scripts/theme.mjs preserve",
     "theme:build": "node scripts/theme.mjs build",
     "theme:check": "node scripts/theme.mjs check",
     "package:ubits": "node scripts/package-ubits.mjs",

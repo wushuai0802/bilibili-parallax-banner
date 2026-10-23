@@ -87,16 +87,16 @@ export async function loadEngine(requested) {
   const version=String(pkg.version??''),parts=version.split('.').map(Number);
   if(pkg.name!=='bilibili-parallax-banner'||parts[0]!==1||parts[1]<4||!Number.isInteger(parts[1]))throw new Error('Expected bilibili-parallax-banner 1.4.x or compatible 1.x source; inspect other contracts before use.');
   for(const file of ['scripts/lib/build-theme.mjs','scripts/lib/project.mjs','scripts/validate-theme.mjs','dist/banner.min.js','dist/banner.css'])await regular(join(root,file));
-  let buildTheme,normalizeProject,validateTheme,localFile;
+  let buildTheme,BUILD_CAPABILITIES,normalizeProject,validateTheme,localFile;
   try {
-    [{buildTheme},{normalizeProject},{validateTheme},{localFile}]=await Promise.all([
+    [{buildTheme,BUILD_CAPABILITIES},{normalizeProject},{validateTheme},{localFile}]=await Promise.all([
       import(pathToFileURL(join(root,'scripts/lib/build-theme.mjs'))),
       import(pathToFileURL(join(root,'scripts/lib/project.mjs'))),
       import(pathToFileURL(join(root,'scripts/validate-theme.mjs'))),
       import(pathToFileURL(join(root,'scripts/lib/files.mjs'))),
     ]);
   } catch(error) {throw new Error('Cannot load production dependencies. Run npm ci --ignore-scripts in the selected checkout. '+error.message);}
-  return {root,version,buildTheme,normalizeProject,validateTheme,localFile,
+  return {root,version,buildTheme,normalizeProject,validateTheme,localFile,capabilities:BUILD_CAPABILITIES??{},
     warnings:version==='1.4.0'?[]:['future-version: '+version+' is outside the tested v1.4.0 baseline; inspect the selected source contract before production use.']};
 }
 
@@ -135,6 +135,7 @@ async function sourceFingerprint(engine,job,base,engineHash) {
     const raw=await readFile(project),normalized=engine.normalizeProject(JSON.parse(raw.toString('utf8')));
     entries.push(['project',sha(raw)]);
     const sources=new Set();
+    if(normalized.preserve)sources.add(await engine.localFile(dirname(project),normalized.preserve.reference));
     for(const variant of Object.values(normalized.variants))for(const layer of variant.config.layers)sources.add(await engine.localFile(dirname(project),layer.source.src));
     for(const file of [...sources].sort()){await regular(file);entries.push([relative(dirname(project),file),sha(await readFile(file))]);}
   }
@@ -177,7 +178,11 @@ async function save(root,state) {
       outputFor(root,job);
       const prefix=href(job.directory);
       if(job.poster)image='<img alt="'+escape(job.id)+' 海报" src="'+prefix+'/'+href(job.poster)+'">';
-      if(['approved','needs_review','changes_requested'].includes(job.status))links='<p><a href="'+prefix+'/index.html">网页预览</a> · <a href="'+prefix+'/artifacts/offline.html">离线预览</a> · <a href="'+prefix+'/artifacts/theme.zip">主题 ZIP</a> · <a href="'+prefix+'/artifacts/contact-sheet.png">构图图</a></p>';
+      if(['approved','needs_review','changes_requested'].includes(job.status)){
+        links='<p><a href="'+prefix+'/index.html">网页预览</a> · <a href="'+prefix+'/'+href(job.offline??'artifacts/offline.html')+'">离线预览</a> · <a href="'+prefix+'/'+href(job.websitePackage??'artifacts/theme.zip')+'">网站包</a>';
+        if(job.proofs!==false)links+=' · <a href="'+prefix+'/artifacts/contact-sheet.png">构图图</a>';
+        links+='</p>';
+      }
     }
     const message=job.status==='needs_preparation'?'请先准备分层素材与制作工程，再继续导出。':job.error??job.message??'';
     const warnings=job.warnings?.length?'<details><summary>制作提示</summary><p>'+escape(job.warnings.join(' / '))+'</p></details>':'';
@@ -207,6 +212,7 @@ async function readState(root) {
 export async function runBatch(options) {
   if(!options.manifest||!options.out)throw new Error('batch requires --manifest and --out');
   const engine=await loadEngine(options.repo),manifestPath=await realpath(resolve(options.manifest));
+  if((options.quick&&!engine.capabilities.quickPreview)||(options.ubits&&!engine.capabilities.ubitsOffline))throw new Error('This operation requires the repository toolkit from skill-v1.1.0 or later; update the source checkout first.');
   await regular(manifestPath);
   const manifest=validateManifest(await readJson(manifestPath)),base=dirname(manifestPath);
   const inputs=[manifestPath,...manifest.jobs.flatMap(job=>[job.project,job.input].filter(Boolean).map(path=>resolve(base,path)))];
@@ -224,8 +230,9 @@ export async function runBatch(options) {
     if(previous&&(previous.repo!==engine.root||previous.manifest!==manifestPath))throw new Error('Resume must use the same source checkout and manifest path; use a new output directory for a different batch');
     const old=new Map((previous?.jobs??[]).map(job=>[job.id,job.status==='running'&&job.cached?job.cached:job]));
     // Preserve not-yet-visited results across an interruption without presenting them as reverified.
-    const state={version:1,repo:engine.root,generatorVersion:engine.version,manifest:manifestPath,startedAt:previous?.startedAt??new Date().toISOString(),warnings:engine.warnings,jobs:manifest.jobs.map(job=>({id:job.id,status:'running',...(old.has(job.id)?{cached:old.get(job.id)}:{})}))};
-    const engineHash=await engineDigest(engine);
+    const buildOptions={proofs:!options.quick,ubits:!!options.ubits};
+    const state={version:1,repo:engine.root,generatorVersion:engine.version,manifest:manifestPath,buildOptions,startedAt:previous?.startedAt??new Date().toISOString(),warnings:engine.warnings,jobs:manifest.jobs.map(job=>({id:job.id,status:'running',...(old.has(job.id)?{cached:old.get(job.id)}:{})}))};
+    const engineHash=sha(json({engine:await engineDigest(engine),buildOptions}));
     await save(root,state);
     for(const [index,job] of manifest.jobs.entries()) {
       let row={id:job.id,status:'failed'};
@@ -243,13 +250,14 @@ export async function runBatch(options) {
             } catch {}
           }
           if(!reused) {
-            const result=await engine.buildTheme(project,output);
+            const result=await engine.buildTheme(project,output,buildOptions);
             if(!result.ok) {
               row={...row,error:result.report.errors.join('; '),failedPreview:result.output};
             } else if(!(await engine.validateTheme(join(output,'theme.json'))).ok) {
               row={...row,error:'Published output did not pass independent theme validation'};
             } else {
-              row={...row,status:'needs_review',reused:false,title:result.theme.preview?.title??result.theme.name,revision:result.theme.revision,checks:result.report.checks,warnings:result.report.warnings,
+              row={...row,status:'needs_review',reused:false,title:result.theme.preview?.title??result.theme.name,revision:result.theme.revision,checks:result.report.checks,warnings:result.report.warnings,proofs:buildOptions.proofs,
+                offline:buildOptions.ubits?'artifacts/ubits-offline.html':'artifacts/offline.html',websitePackage:engine.capabilities.websitePackage?'artifacts/website.zip':'artifacts/theme.zip',buildMs:result.elapsedMs,contentCheck:result.report.preservation??null,
                 poster:'desktop/'+result.theme.variants.desktop.config.poster,outputDigest:await treeDigest(output)};
             }
           }
@@ -271,7 +279,8 @@ export async function reviewBatch(options) {
     if(state.repo!==engine.root)throw new Error('Review must use the batch source checkout');
     const manifest=validateManifest(await readJson(state.manifest)),source=manifest.jobs.find(job=>job.id===options.id),row=state.jobs.find(job=>job.id===options.id);
     if(!source||!row||!['approved','needs_review','changes_requested'].includes(row.status))throw new Error('Only a successfully exported current job can be reviewed');
-    const {fingerprint}=await sourceFingerprint(engine,source,dirname(state.manifest),await engineDigest(engine));
+    const engineHash=sha(json({engine:await engineDigest(engine),buildOptions:state.buildOptions??{proofs:true,ubits:false}}));
+    const {fingerprint}=await sourceFingerprint(engine,source,dirname(state.manifest),engineHash);
     const output=await checkedOutput(root,row);
     if(fingerprint!==row.fingerprint||await treeDigest(output)!==row.outputDigest||!(await engine.validateTheme(join(output,'theme.json'))).ok)throw new Error('Inputs or output changed. Resume the batch before recording a new review.');
     row.status=options.decision==='approved'?'approved':'changes_requested';
@@ -287,18 +296,18 @@ export async function runCli(args) {
     console.log('doctor --repo SOURCE\nbatch --repo SOURCE --manifest JOBS.json --out OUTPUT [--resume]\nreview --repo SOURCE --out OUTPUT --id JOB --decision approved|changes --by REVIEWER --note NOTES');
     return 0;
   }
-  const allowed={doctor:['repo'],batch:['repo','manifest','out','resume'],review:['repo','out','id','decision','by','note']}[command];
+  const allowed={doctor:['repo'],batch:['repo','manifest','out','resume','quick','ubits'],review:['repo','out','id','decision','by','note']}[command];
   if(!allowed)throw new Error('Unknown command: '+command);
   const options={};
   for(let index=0;index<rest.length;index++) {
     const flag=rest[index],key=flag.startsWith('--')?flag.slice(2):'';
     if(!allowed.includes(key)||Object.hasOwn(options,key))throw new Error('Unknown or repeated option: '+flag);
-    if(key==='resume')options.resume=true;
+    if(['resume','quick','ubits'].includes(key))options[key]=true;
     else {if(rest[index+1]===undefined||rest[index+1].startsWith('--'))throw new Error(flag+' requires a value');options[key]=rest[++index];}
   }
   if(command==='doctor') {
     const engine=await loadEngine(options.repo);
-    console.log(json({ok:true,repo:engine.root,node:process.versions.node,version:engine.version,warnings:engine.warnings,imageService:'Use the host image tools; this script makes no API calls.'}));
+    console.log(json({ok:true,repo:engine.root,node:process.versions.node,version:engine.version,capabilities:engine.capabilities,warnings:engine.warnings,imageService:'Use the host image tools; this script makes no API calls.'}));
     return 0;
   }
   if(command==='review'){console.log(json(await reviewBatch(options)));return 0;}

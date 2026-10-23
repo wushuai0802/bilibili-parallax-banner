@@ -5,6 +5,7 @@ import {readJson,json} from './lib/files.mjs';
 import {normalizeProject} from './lib/project.mjs';
 import {buildTheme} from './lib/build-theme.mjs';
 import {validateTheme} from './validate-theme.mjs';
+import {preparePreservedProject} from './lib/preservation.mjs';
 
 export async function run(args) {
   const [command,...rest]=args,flags={},positionals=[];
@@ -13,11 +14,15 @@ export async function run(args) {
     if(['--out','--name','--preset'].includes(value)) {
       if(!rest[index+1]||rest[index+1].startsWith('--'))throw new Error(`${value} requires a value`);
       flags[value.slice(2)]=rest[++index];
-    } else if(['--gif','--no-proofs','--overwrite'].includes(value))flags[value.slice(2)]=true;
+    } else if(['--gif','--no-proofs','--overwrite','--quick','--ubits','--rebuild'].includes(value))flags[value.slice(2)]=true;
     else if(value.startsWith('--'))throw new Error(`Unknown option: ${value}`);
     else positionals.push(value);
   }
   if(positionals.length>1)throw new Error('Use one project or theme path');
+  if(command==='preserve'){
+    if(!positionals[0]||!flags.out)throw new Error('Usage: npm run theme:preserve -- <plan.json> --out <new-project-directory>');
+    return preparePreservedProject(positionals[0],flags.out);
+  }
   if(command==='init') {
     if(!positionals[0])throw new Error('Usage: npm run theme:init -- <new-directory> [--name theme-name] [--preset 4x1]');
     if(flags.preset!==undefined&&flags.preset!=='4x1')throw new Error('Supported preset: 4x1; omit --preset for the full-width default');
@@ -35,7 +40,8 @@ export async function run(args) {
     return {ok:true,output:destination};
   }
   if(command==='build') {
-    const result=await buildTheme(positionals[0]??'templates/theme-project/project.json',flags.out,{proofs:!flags['no-proofs'],gif:flags.gif,overwrite:flags.overwrite});
+    const result=await buildTheme(positionals[0]??'templates/theme-project/project.json',flags.out,{proofs:!flags['no-proofs']&&!flags.quick,gif:flags.gif,overwrite:flags.overwrite,ubits:flags.ubits,reuse:!flags.rebuild});
+    console.log('Build: '+Math.round(result.elapsedMs??0)+' ms / '+(result.reused?'reused verified files':'generated')+' / Website: '+join(result.output,'artifacts/website.zip'));
     for(const warning of result.report.warnings)console.warn(`WARN ${warning}`);
     for(const error of result.report.errors.slice(0,20))console.error(`ERROR ${error}`);
     console.log(`${result.ok?'PASS':'FAIL'} / ${result.report.checks} checks / ${result.output}`);

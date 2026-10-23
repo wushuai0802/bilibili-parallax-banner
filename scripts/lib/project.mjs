@@ -8,7 +8,7 @@ export const PRESETS={
     viewports:[280,320,360,375,390,412,430,600,767],textZones:[{id:'site-title',rect:[.048,.05,.6,.32]}],subjectBox:[.04,.42,.92,.58],offsets:{background:[2,0],subject:[8,0],foreground:[20,2],detail:[4,0]}},
 };
 const roles=new Set(['background','subject','foreground','detail']);
-const allowed=new Set(['$schema','version','name','artwork','background','layers','variants','breakpoint','minimumMargin','motion','preview']);
+const allowed=new Set(['$schema','version','name','artwork','background','layers','variants','breakpoint','minimumMargin','motion','preview','preserve']);
 const finite=value=>typeof value==='number'&&Number.isFinite(value);
 const keys=(value,allowed,label)=>{
   if(value!==undefined&&(!value||typeof value!=='object'||Array.isArray(value)))throw new TypeError(`${label} must be an object`);
@@ -25,6 +25,8 @@ export function normalizeProject(input) {
   if(typeof input.name!=='string'||!/^[a-z][a-z0-9-]{0,63}$/.test(input.name))throw new TypeError('Project name must be a lowercase ASCII slug');
   for(const key of ['author','source','license'])if(typeof input.artwork?.[key]!=='string'||!input.artwork[key].trim())throw new TypeError(`artwork.${key} must be recorded`);
   if(!Array.isArray(input.layers)||!input.layers.length||input.layers.length>32)throw new TypeError('Project requires 1 to 32 source layers');
+  keys(input.preserve,['reference'],'preserve');
+  if(input.preserve&&(typeof input.preserve.reference!=='string'||!input.preserve.reference.trim()))throw new TypeError('preserve.reference must name the original image');
   keys(input.preview,['brand','title','subtitle','eyebrow','proofWidths'],'preview');
   if(input.preview?.proofWidths&&(!Array.isArray(input.preview.proofWidths)||!input.preview.proofWidths.length||input.preview.proofWidths.some(width=>!Number.isInteger(width)||width<1||width>10000)))throw new TypeError('proofWidths must contain positive integer container widths');
   const ids=new Set();

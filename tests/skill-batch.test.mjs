@@ -142,7 +142,7 @@ test('standalone CLI works from a different directory with paths containing spac
 
 test('portable skill package has one root, supporting resources and no private runtime files',()=>fixture(async f=>{
   const zipFile=await packageSkill(join(f.dir,'parallax-banner-maker.zip')),entries=unzipSync(await readFile(zipFile)),paths=Object.keys(entries);
-  for(const file of ['SKILL.md','agents/openai.yaml','scripts/banner-batch.mjs','references/artwork.md','references/batch.md','references/production.md','references/acceptance.md','assets/batch.example.json','LICENSE'])assert.ok(entries['parallax-banner-maker/'+file],file);
+  for(const file of ['SKILL.md','agents/openai.yaml','scripts/banner-batch.mjs','scripts/check-preview.mjs','references/artwork.md','references/batch.md','references/production.md','references/acceptance.md','assets/batch.example.json','assets/preserve-plan.example.json','LICENSE'])assert.ok(entries['parallax-banner-maker/'+file],file);
   assert.ok(paths.every(file=>file.startsWith('parallax-banner-maker/')));
   assert.equal(paths.some(file=>/node_modules|batch-state|\.env|outputs\/|\.git\//.test(file)),false);
 }));

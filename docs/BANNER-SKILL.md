@@ -1,10 +1,10 @@
 # 运营 Banner 制作 Skill
 
-parallax-banner-maker 将本项目制作流程交给支持 Agent Skills 的 AI 客户端执行，覆盖单张、批量、UBits 4:1、保留原人物、AI 创作和静态交付。Skill 版本 1.0.0，已验证源码基线 v1.4.0。
+parallax-banner-maker 1.1.0 面向运营制作单张／批量 UBits Banner。默认保留整张原图的文字、人物、道具和构图，统一远中近景、接触地面与接缝检查。新增工具随 skill-v1.1.0 源码标签提供，网站组件合同仍为 v1.4.0。
 
 ## 安装与准备
 
-直接下载 [Skill v1.0.0 安装包](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/skill-v1.0.0/parallax-banner-maker.zip)，解压得到 parallax-banner-maker 文件夹，包含 SKILL.md、界面元数据、制作参考和批量脚本。[发布页](https://github.com/wushuai0802/bilibili-parallax-banner/releases/tag/skill-v1.0.0)另附使用说明和 [SHA256 校验值](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/skill-v1.0.0/SHA256SUMS.txt)。
+直接下载 [Skill v1.1.0 安装包](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/skill-v1.1.0/parallax-banner-maker.zip)，解压得到 parallax-banner-maker 文件夹。[发布页](https://github.com/wushuai0802/bilibili-parallax-banner/releases/tag/skill-v1.1.0)另附使用说明和 [SHA256 校验值](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/skill-v1.1.0/SHA256SUMS.txt)。
 
 需要查看或维护 Skill 时使用 [仓库中的源文件](../skills/parallax-banner-maker/)。本地重新打包可在源码仓库运行 npm run package:skill，得到 outputs/parallax-banner-maker.zip。
 
@@ -12,7 +12,7 @@ parallax-banner-maker 将本项目制作流程交给支持 Agent Skills 的 AI �
 
 运营还需要：
 
-- 本项目源码和 Node.js 22 或 24；在源码目录完成 npm ci --ignore-scripts。
+- skill-v1.1.0 对应源码和 Node.js 22 或 24；首次在源码目录完成 npm ci --ignore-scripts，已有依赖直接复用。doctor 的 capabilities 会显示保真、缓存、快速预览和网站包能力。
 - 做抠图、补景或原创图时，客户端有实际可用的图像工具。只导出已有源工程不需要图像服务。
 - 原图或分层素材及其来源信息。
 
@@ -22,12 +22,13 @@ Skill 本身不包含账号、API Key、电脑固定路径、图像模型或生�
 
 ~~~text
 使用 $parallax-banner-maker，把这张海报制作成 UBits 4:1 动态 Banner。
-保留原图人物，补全背景，兼顾个人中心展开后的紧凑构图，给我离线预览和网站主题包。
+完整保留原图文字、人物和构图，只补全被分层遮住的背景。
+人物与坐具、阴影和地面保持接触，检查个人中心开合，给我离线预览和精简网站包。
 ~~~
 
 ~~~text
 使用 $parallax-banner-maker，批量处理这个目录的海报。
-保留每张原图的主要人物，逐项制作 UBits 4:1 主题；有困难的项目列明原因并继续其他项。
+保留每张原图的全部内容，复用已有遮罩，逐项制作 UBits 4:1 主题；困难项列明原因并继续其他项。
 请给我一个总览，方便集中复核和下载。
 ~~~
 
@@ -40,7 +41,13 @@ Skill 本身不包含账号、API Key、电脑固定路径、图像模型或生�
 
 ## 单张与批量产物
 
-单张交付沿用标准 theme:build：双端图片、theme.json、网页与单文件离线预览、构图图、报告、artifacts/theme.zip，以及独立保存的源工程。
+原图已经是 4:1 且有原尺寸遮罩时，theme:preserve 可自动生成原坐标源工程；一个移动层可以合并人物与支撑地面的多张遮罩。preserve.reference 会比较完整源画布，拒绝删字、隐藏、裁切或重新排布。该检查发生在缩放和编码之前。
+
+首次出样用 theme:build 的 --quick --ubits：保留内容、图片和几何验证，跳过大型拼图，自动生成个人中心预览及“对照原图”。确认后去掉 --quick 做一次最终构建。单张也默认按输入／工具／产物摘要复用缓存，--rebuild 可强制重建。
+
+这缩短的是可复用的本地处理、出样和交付流程。新海报的分割／补绘质量仍取决于实际图像工具；不能把已准备好遮罩的秒级构建描述成任意图片的完整制作耗时。
+
+单张交付包含双端图片、theme.json、预览和报告。网站优先使用 artifacts/website.zip，约束为运行资源和最小接入文件；预览、拼图、源工程不会混进网站包。artifacts/theme.zip 继续提供完整预览资料包。
 
 批量脚本另生成：
 
@@ -52,6 +59,6 @@ Skill 本身不包含账号、API Key、电脑固定路径、图像模型或生�
 
 ## 验收边界
 
-导出成功的默认状态是 needs_review。查看两端与位移效果后再记录画面复核；记录中区分 AI 自检和运营确认。源图、布局、引擎或产物变化会使旧复核失效。
+导出成功默认仍为 needs_review。对照原图、检查两端位移、拼接处和脚下接触关系后再记录复核，区分 AI 自检与运营确认。原图、布局、构建选项、引擎或产物变化会使缓存和旧复核失效。
 
 自动检查覆盖图片和标记区域的几何规则，不自动识别人脸或验证抠图美感。批量脚本不会将任意海报直接变成无缺陷的分层图，也不会自动发布到网站。完整验收约定见 [验收参考](../skills/parallax-banner-maker/references/acceptance.md)。

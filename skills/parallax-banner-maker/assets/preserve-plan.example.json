@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "name": "my-preserved-banner",
+  "original": "inputs/original.png",
+  "fill": "work/hidden-background.png",
+  "artwork": {
+    "author": "填写原图实际作者",
+    "source": "填写原图实际来源",
+    "license": "填写原图实际许可"
+  },
+  "preview": {"title": "填写主题名称", "brand": "UBits"},
+  "planes": [
+    {
+      "id": "midground",
+      "role": "subject",
+      "name": "人物与支撑地面",
+      "masks": [
+        {"src": "work/people-mask.png", "channel": "luma"},
+        {"src": "work/contact-ground-mask.png", "channel": "luma"}
+      ],
+      "regions": [{"id": "replace-with-measured-head", "rect": [600, 40, 120, 140]}],
+      "offset": [8, 0]
+    },
+    {
+      "id": "foreground",
+      "role": "foreground",
+      "name": "实际近景遮挡物",
+      "masks": [{"src": "work/foreground-mask.png", "channel": "luma"}],
+      "offset": [20, 0]
+    }
+  ]
+}
