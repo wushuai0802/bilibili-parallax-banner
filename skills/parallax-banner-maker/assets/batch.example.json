@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "summer-film",
+      "project": "work/summer-film/project.json",
+      "mode": "layers"
+    },
+    {
+      "id": "new-poster",
+      "input": "inputs/new-poster.jpg",
+      "mode": "preserve",
+      "brief": "保留原图人物，补全背景，制作 UBits 4:1；完成源工程后为本项添加 project 路径"
+    }
+  ]
+}

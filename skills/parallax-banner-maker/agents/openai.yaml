@@ -1,0 +1,4 @@
+interface:
+  display_name: "Banner 制作与批量交付"
+  short_description: "从海报或分层素材制作可预览、可批量验收的双端视差 Banner 主题包"
+  default_prompt: "使用 $parallax-banner-maker，把提供的海报或素材制作成 UBits 4:1 Banner，检查电脑、紧凑构图与动效，并交付预览和主题包。"

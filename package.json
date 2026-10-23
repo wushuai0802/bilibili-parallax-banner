@@ -27,7 +27,8 @@
     "docs",
     "templates",
     "schemas",
-    "integrations"
+    "integrations",
+    "skills"
   ],
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "theme:build": "node scripts/theme.mjs build",
     "theme:check": "node scripts/theme.mjs check",
     "package:ubits": "node scripts/package-ubits.mjs",
+    "package:skill": "node scripts/package-skill.mjs",
     "test:browser": "playwright test",
     "showcase:gif": "node scripts/render-showcase.mjs",
     "showcase:composition": "node scripts/render-composition.mjs",

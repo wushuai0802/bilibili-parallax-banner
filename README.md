@@ -57,11 +57,14 @@ npm run theme:check -- outputs/summer/theme.json
 
 输入仍需要已经拆层的背景和透明主体；工具不从任意扁平海报自动抠图、补景或识别人脸。素材制作与验收约定见[图片规范](docs/IMAGE-SPEC.md)。
 
+运营也可以使用 [Banner 制作 Skill](docs/BANNER-SKILL.md)，让 AI 按统一流程准备素材、制作单张或批量主题并交付预览。[直接下载 Skill v1.0.0 ZIP](https://github.com/wushuai0802/bilibili-parallax-banner/releases/download/skill-v1.0.0/parallax-banner-maker.zip) · [安装与使用说明](docs/BANNER-SKILL.md)。Skill 附带本地批量脚本，支持失败隔离、内容校验后恢复和画面复核记录；图像服务使用运营自己的环境。打包命令为 npm run package:skill。
+
 ## 文档与模板
 
 | 需要 | 入口 |
 | --- | --- |
 | 从海报到网站的完整交接 | [标准流程](docs/WORKFLOW.md) |
+| 运营通过 AI 单张／批量制作 | [制作 Skill 与使用方法](docs/BANNER-SKILL.md) |
 | 网站、React、Vue接入 | [接入指南](docs/INTEGRATION.md) |
 | UBits 4:1、侧栏和原生轮播 | [站点适配](docs/UBITS.md) |
 | 源图与导出图片要求 | [图片规范](docs/IMAGE-SPEC.md) |
